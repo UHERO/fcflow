@@ -1,0 +1,20 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://uhero.github.io/fcflow/404.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/LICENSE-text.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/authors.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/index.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/combine_equations.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/extend_qmain_history.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/import_existing_fcst.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/index.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/load_forecast_cfg.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_data_qmain.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_data_qmod.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_indicators.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_qmod.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/pipe.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/plot_qsol.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/sol_qmod.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/wrangle_data_qmain.html</loc></url>
+</urlset>
+
