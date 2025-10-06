@@ -1,0 +1,84 @@
+vintages:
+  prev: "25Q1"
+  curr: "25Q2"
+
+paths:
+  raw: "data/raw"
+  processed: "data/processed"
+  equations: "equations"
+  output: "output"
+  figures: "output/figures"
+
+constants:
+  bank_start: 1970.1
+  bank_end: 2100.4
+
+data_qmain:
+  data_from_disk: true
+  exp_id_q: 333
+  extend_history: true
+  indicators_file: indicators.RDS
+  save_outputs: true
+
+combine_equations:
+  eq_subset:
+    - ocup
+    - prm
+    - pprm
+    - trms
+    - vday
+    - vexp
+    - vis
+    - vlos
+  save_outputs: true
+
+make_data_qmod:
+  update_qmain: false
+  update_equations: false
+  ext_start: 2010.1
+  ext_end: 2050.4
+  save_outputs: true
+
+make_qmod:
+  reestimate: true
+  save_eq: true
+  force_tsrange: false
+  est_start: 1990.1
+  est_end: 2019.4
+  save_outputs: true
+
+sol_qmod:
+  sim_start: 2020.1
+  sim_end: 2029.4
+  sim_iter_limit: 100
+  sim_convergence: 0.00001
+  save_outputs: true
+
+plot_qsol:
+  short: false
+  annual: false
+  tourplot: true
+  jobonly: false
+  ypjonly: false
+  yonly: false
+  load_curr_vint: true
+  load_prev_vint: true
+  load_history: true
+  ranges:
+    short:
+      plot_start: 2019.1
+      plot_end: 2033.4
+      show_table: true
+      tab_start: 2024.1
+      tab_end: 2029.4
+    long:
+      plot_start: 1990.1
+      plot_end: 2056.4
+      show_table: false
+      tab_start: 2023.3
+      tab_end: 2033.4
+  plot_width: 1500
+  plot_height: 650
+  yoy_growth: true
+  save_outputs: true
+  preview_html: true
