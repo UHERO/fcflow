@@ -33,3 +33,4 @@ Encoding: UTF-8
 LazyData: true
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
+URL: https://uhero.github.io/fcflow/

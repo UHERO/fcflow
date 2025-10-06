@@ -2,3 +2,6 @@
 ^renv\.lock$
 ^fcflow\.Rproj$
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
