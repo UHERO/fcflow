@@ -205,29 +205,31 @@ import_existing_fcst <- function(
     data_existing_fcst_xts$GDP_R_JP / data_existing_fcst_xts$YXR_JP
 
   # construct current base-year CPI from existing CPI series
-  data_existing_fcst_xts <- data_existing_fcst_xts %>%
-    tsbox::ts_tbl() %>%
-    tsbox::ts_wide() %>%
-    dplyr::left_join(
-      tsbox::ts_chain(
-        data_qmod_xts %>% tsbox::ts_pick("CPI_B_HON") %>% tsbox::ts_na_omit(),
-        data_existing_fcst_xts %>%
-          tsbox::ts_pick("CPI_HON") %>%
-          tsbox::ts_na_omit()
+  if ("CPI_B_HON" %in% names(data_qmod_xts)) {
+    data_existing_fcst_xts <- data_existing_fcst_xts %>%
+      tsbox::ts_tbl() %>%
+      tsbox::ts_wide() %>%
+      dplyr::left_join(
+        tsbox::ts_chain(
+          data_qmod_xts %>% tsbox::ts_pick("CPI_B_HON") %>% tsbox::ts_na_omit(),
+          data_existing_fcst_xts %>%
+            tsbox::ts_pick("CPI_HON") %>%
+            tsbox::ts_na_omit()
+        ) %>%
+          tsbox::ts_tbl() %>%
+          dplyr::mutate(id = "CPI_B_HON") %>%
+          tsbox::ts_wide(),
+        by = "time"
       ) %>%
-        tsbox::ts_tbl() %>%
-        dplyr::mutate(id = "CPI_B_HON") %>%
-        tsbox::ts_wide(),
-      by = "time"
-    ) %>%
-    tsbox::ts_long() %>%
-    tsbox::ts_xts()
+      tsbox::ts_long() %>%
+      tsbox::ts_xts()
+  }
 
   # make a copy of the existing forecast data before subsetting to exog_list
   data_existing_fcst_all_xts <- data_existing_fcst_xts
 
   exog_list <- equations_qmod$vexog %>%
-    stringr::str_subset("IIS_|SIS_|IQ|TREND|CONST", negate = TRUE)
+    stringr::str_subset("IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON", negate = TRUE)
 
   # ensure the pseudo-exogenous series are available in data_qmod_xts and data_existing_fcst_xts
   missing_in_qmod <- setdiff(exog_list, names(data_qmod_xts))
