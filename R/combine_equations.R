@@ -52,13 +52,16 @@ combine_equations <- function(cfg = load_forecast_cfg()) {
   if (isTRUE(save_outputs)) {
     readr::write_lines(
       all_eqs %>% dplyr::pull(.data$value),
-      here::here(eqn_dir, "equations_qmod_{curr_vint}.txt")
+      here::here(eqn_dir, stringr::str_glue("equations_qmod_{curr_vint}.txt"))
     )
   }
 
   # load the combined text file into a BIMETS model object the rest of the workflow can use
   equations_qmod <- bimets::LOAD_MODEL(
-    modelFile = here::here(eqn_dir, "equations_qmod_{curr_vint}.txt")
+    modelFile = here::here(
+      eqn_dir,
+      stringr::str_glue("equations_qmod_{curr_vint}.txt")
+    )
   )
 
   # save the BIMETS object so estimation/solving can reuse it without re-parsing text
