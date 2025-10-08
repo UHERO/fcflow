@@ -487,5 +487,185 @@ wrangle_data_qmain <- function(data_qmain_xts) {
   data_qmain_xts$TRMS_KAU <- data_qmain_xts$TRMSADJ_KAU
   data_qmain_xts$TRMS_MAU <- data_qmain_xts$TRMSADJ_MAU
 
+  # DELETE START
+  dat_raw_dir <- "data/raw"
+  dummies_aremos_xts <- readr::read_tsv(here::here(
+    dat_raw_dir,
+    stringr::str_glue("DUMMY1", ".TSV")
+  )) %>%
+    dplyr::left_join(
+      readr::read_tsv(here::here(
+        dat_raw_dir,
+        stringr::str_glue("DUMMY2", ".TSV")
+      )),
+      by = c("DATE")
+    ) %>%
+    dplyr::mutate(
+      time = lubridate::yq(.data$DATE),
+      .before = "DATE",
+      .keep = "unused"
+    ) %>%
+    dplyr::rename_with(~ stringr::str_replace_all(., c("@" = "_"))) %>%
+    fcutils::conv_xts() %>%
+    tsbox::ts_pick(
+      c(
+        "DUM_983",
+        "DUM_014",
+        "DUM_844",
+        "DUM_854",
+        "DUM_781",
+        "DUM_843",
+        "DUM_851",
+        "DUM_002",
+        "DUM_743",
+        "DUM_744",
+        "DUM_931",
+        "DUM_901",
+        "DUM_083",
+        "DUM_084",
+        "DUM_091",
+        "DUM_101",
+        "DUM_911",
+        "DUM_921",
+        "DUM_942",
+        "DUM_993",
+        "DUM_794",
+        "DUM_801",
+        "DUM_032",
+        "DUM_034",
+        "DUM_042",
+        "DUM_834",
+        "DUM_863",
+        "DUM_864",
+        "DUM_884",
+        "DUM_871",
+        "DUM_734",
+        "DUM_974",
+        "DUM_811",
+        "DUM_831",
+        "DUM_833",
+        "DUM_053",
+        "DUM_941",
+        "DUM_951",
+        "DUM_963",
+        "DUM_932",
+        "DUM_992",
+        "DUM_011",
+        "DUM_072",
+        "DUM_981",
+        "DUM_001",
+        "DUM_031",
+        "DUM_952",
+        "DUM_103",
+        "DUM_893",
+        "SEASON_2",
+        "SEASON_3",
+        "SEASON_4",
+        "DUM_112",
+        "DUM_891",
+        "DUMTRMS11",
+        "DUM_923",
+        "DUM_924",
+        "DUM_081",
+        "DUM_082",
+        "DUM_121",
+        "DUM_131",
+        "DUM_852",
+        "DUM_742",
+        "DUM_774",
+        "DUM_994",
+        "DUM_971",
+        "DUM_721",
+        "DUM_812",
+        "DUM_062",
+        "DUM_021",
+        "DUM_761",
+        "DUM_771"
+      )
+    )
+  # setdiff(varlist_qmod, c(names(data_qmain.xts), names(dummies_aremos.xts), names(data_aremos_fcst.xts)))
+  # use_from_aremos <- setdiff(varlist_qmod, c(names(data_qmain.xts), names(dummies_aremos.xts)))
+  # store the variables used in qmod
+  data_qmain_xts <- data_qmain_xts %>%
+    tsbox::ts_c(dummies_aremos_xts) #%>%
+  # ts_c(data_aremos_fcst.xts %>% ts_pick(use_from_aremos)) %>%
+  # ts_pick(varlist_qmod)
+  # DELETE END
+
+  # # DUMMY VARIABLES
+  # data_qmain_xts$DUM_983 <- data_qmain_xts$IIS_1998Q3
+  # data_qmain_xts$DUM_014 <- data_qmain_xts$IIS_2001Q3
+  # data_qmain_xts$DUM_844 <- data_qmain_xts$IIS_1984Q4
+  # data_qmain_xts$DUM_854 <- data_qmain_xts$IIS_1985Q4
+  # data_qmain_xts$DUM_781 <- data_qmain_xts$IIS_1978Q1
+  # data_qmain_xts$DUM_843 <- data_qmain_xts$IIS_1984Q3
+  # data_qmain_xts$DUM_851 <- data_qmain_xts$IIS_1985Q1
+  # data_qmain_xts$DUM_002 <- data_qmain_xts$IIS_2000Q2
+  # data_qmain_xts$DUM_743 <- data_qmain_xts$IIS_1974Q3
+  # data_qmain_xts$DUM_744 <- data_qmain_xts$IIS_1974Q4
+  # data_qmain_xts$DUM_931 <- data_qmain_xts$IIS_1993Q1
+  # data_qmain_xts$DUM_901 <- data_qmain_xts$IIS_1990Q1
+  # data_qmain_xts$DUM_083 <- data_qmain_xts$IIS_2008Q3
+  # data_qmain_xts$DUM_084 <- data_qmain_xts$IIS_2008Q4
+  # data_qmain_xts$DUM_091 <- data_qmain_xts$IIS_2009Q1
+  # data_qmain_xts$DUM_101 <- data_qmain_xts$IIS_2010Q1
+  # data_qmain_xts$DUM_911 <- data_qmain_xts$IIS_1991Q1
+  # data_qmain_xts$DUM_921 <- data_qmain_xts$IIS_1992Q1
+  # data_qmain_xts$DUM_942 <- data_qmain_xts$IIS_1994Q2
+  # data_qmain_xts$DUM_993 <- data_qmain_xts$IIS_1999Q3
+  # data_qmain_xts$DUM_794 <- data_qmain_xts$IIS_1979Q4
+  # data_qmain_xts$DUM_801 <- data_qmain_xts$IIS_1980Q1
+  # data_qmain_xts$DUM_032 <- data_qmain_xts$IIS_2003Q2
+  # data_qmain_xts$DUM_034 <- data_qmain_xts$IIS_2003Q4
+  # data_qmain_xts$DUM_042 <- data_qmain_xts$IIS_2004Q2
+  # data_qmain_xts$DUM_834 <- data_qmain_xts$IIS_1983Q4
+  # data_qmain_xts$DUM_863 <- data_qmain_xts$IIS_1986Q3
+  # data_qmain_xts$DUM_864 <- data_qmain_xts$IIS_1986Q4
+  # data_qmain_xts$DUM_884 <- data_qmain_xts$IIS_1988Q4
+  # data_qmain_xts$DUM_871 <- data_qmain_xts$IIS_1987Q1
+  # data_qmain_xts$DUM_734 <- data_qmain_xts$IIS_1973Q4
+  # data_qmain_xts$DUM_974 <- data_qmain_xts$IIS_1997Q4
+  # data_qmain_xts$DUM_811 <- data_qmain_xts$IIS_1981Q1
+  # data_qmain_xts$DUM_831 <- data_qmain_xts$IIS_1983Q1
+  # data_qmain_xts$DUM_833 <- data_qmain_xts$IIS_1983Q3
+  # data_qmain_xts$DUM_053 <- data_qmain_xts$IIS_2005Q3
+  # data_qmain_xts$DUM_941 <- data_qmain_xts$IIS_1994Q1
+  # data_qmain_xts$DUM_951 <- data_qmain_xts$IIS_1995Q1
+  # data_qmain_xts$DUM_963 <- data_qmain_xts$IIS_1996Q3
+  # data_qmain_xts$DUM_932 <- data_qmain_xts$IIS_1993Q2
+  # data_qmain_xts$DUM_992 <- data_qmain_xts$IIS_1999Q2
+  # data_qmain_xts$DUM_011 <- data_qmain_xts$IIS_2001Q1
+  # data_qmain_xts$DUM_072 <- data_qmain_xts$IIS_2007Q2
+  # data_qmain_xts$DUM_981 <- data_qmain_xts$IIS_1998Q1
+  # data_qmain_xts$DUM_001 <- data_qmain_xts$IIS_2000Q1
+  # data_qmain_xts$DUM_031 <- data_qmain_xts$IIS_2003Q1
+  # data_qmain_xts$DUM_952 <- data_qmain_xts$IIS_1995Q2
+  # data_qmain_xts$DUM_103 <- data_qmain_xts$IIS_2010Q3
+  # data_qmain_xts$DUM_893 <- data_qmain_xts$IIS_1989Q3
+  # data_qmain_xts$DUM_112 <- data_qmain_xts$IIS_2011Q2
+  # data_qmain_xts$DUM_891 <- data_qmain_xts$IIS_1989Q1
+  # data_qmain_xts$DUM_923 <- data_qmain_xts$IIS_1992Q3
+  # data_qmain_xts$DUM_924 <- data_qmain_xts$IIS_1992Q4
+  # data_qmain_xts$DUM_081 <- data_qmain_xts$IIS_2008Q1
+  # data_qmain_xts$DUM_082 <- data_qmain_xts$IIS_2008Q2
+  # data_qmain_xts$DUM_121 <- data_qmain_xts$IIS_2012Q1
+  # data_qmain_xts$DUM_131 <- data_qmain_xts$IIS_2013Q1
+  # data_qmain_xts$DUM_852 <- data_qmain_xts$IIS_1985Q2
+  # data_qmain_xts$DUM_742 <- data_qmain_xts$IIS_1974Q2
+  # data_qmain_xts$DUM_774 <- data_qmain_xts$IIS_1977Q4
+  # data_qmain_xts$DUM_994 <- data_qmain_xts$IIS_1999Q4
+  # data_qmain_xts$DUM_971 <- data_qmain_xts$IIS_1997Q1
+  # data_qmain_xts$DUM_721 <- data_qmain_xts$IIS_1972Q1
+  # data_qmain_xts$DUM_812 <- data_qmain_xts$IIS_1981Q2
+  # data_qmain_xts$DUM_062 <- data_qmain_xts$IIS_2006Q2
+  # data_qmain_xts$DUM_021 <- data_qmain_xts$IIS_2002Q1
+  # data_qmain_xts$DUM_761 <- data_qmain_xts$IIS_1976Q1
+  # data_qmain_xts$DUM_771 <- data_qmain_xts$IIS_1977Q1
+  # # TODO: The following variables do not follow the DUM_YYQ pattern. Please review them.
+  # # data_qmain_xts$SEASON_2 <- ...
+  # # data_qmain_xts$SEASON_3 <- ...
+  # # data_qmain_xts$SEASON_4 <- ...
+  # # data_qmain_xts$DUMTRMS11 <- ...
+
   data_qmain_xts
 }
