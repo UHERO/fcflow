@@ -453,5 +453,39 @@ wrangle_data_qmain <- function(data_qmain_xts) {
   data_qmain_xts$LFPR_HON <- data_qmain_xts$LF_HON / data_qmain_xts$NR_HON
   data_qmain_xts$LFPR_NBI <- data_qmain_xts$LF_NBI / data_qmain_xts$NR_NBI
 
+  data_qmain_xts$EMN_HI_D_NR_HI <- data_qmain_xts$EMN_HI /
+    data_qmain_xts$NR_HI
+  data_qmain_xts$EMN_NBI_D_NR_NBI <- data_qmain_xts$EMN_NBI /
+    data_qmain_xts$NR_NBI
+  data_qmain_xts$VEXP_HON_D_CPI_HON <- data_qmain_xts$VEXP_HON /
+    data_qmain_xts$CPI_HON
+  data_qmain_xts$VISCRAIR_HI_D_VIS_HI <- data_qmain_xts$VISCRAIR_HI /
+    data_qmain_xts$VIS_HI
+  data_qmain_xts$YLAF_R_HI_D_EAF_HI <- data_qmain_xts$YLAF_R_HI /
+    data_qmain_xts$EAF_HI
+  data_qmain_xts$YLMN_R_HI_D_EMN_HI <- data_qmain_xts$YLMN_R_HI /
+    data_qmain_xts$EMN_HI
+  data_qmain_xts$YL_ELSE_R_HI_D_E_ELSE_HI <- data_qmain_xts$YL_ELSE_R_HI /
+    data_qmain_xts$E_ELSE_HI
+  data_qmain_xts$YL_FIR_R_HI_D_E_FIR_HI <- data_qmain_xts$YL_FIR_R_HI /
+    data_qmain_xts$E_FIR_HI
+  data_qmain_xts$YL_TU_R_HI_D_E_TU_HI <- data_qmain_xts$YL_TU_R_HI /
+    data_qmain_xts$E_TU_HI
+  data_qmain_xts$YS_HI_D_Y_HI <- data_qmain_xts$YS_HI /
+    data_qmain_xts$Y_HI
+  data_qmain_xts$YTRNSF_R_HI_D_NR_HI <- data_qmain_xts$YTRNSF_R_HI /
+    data_qmain_xts$NR_HI
+
+  data_qmain_xts$OCUPP_HAW <- data_qmain_xts$OCUPPADJ_HAW
+  data_qmain_xts$OCUPP_HI <- data_qmain_xts$OCUPPADJ_HI
+  data_qmain_xts$OCUPP_HON <- data_qmain_xts$OCUPPADJ_HON
+  data_qmain_xts$OCUPP_KAU <- data_qmain_xts$OCUPPADJ_KAU
+  data_qmain_xts$OCUPP_MAU <- data_qmain_xts$OCUPPADJ_MAU
+  data_qmain_xts$TRMS_HAW <- data_qmain_xts$TRMSADJ_HAW
+  data_qmain_xts$TRMS_HI <- data_qmain_xts$TRMSADJ_HI
+  data_qmain_xts$TRMS_HON <- data_qmain_xts$TRMSADJ_HON
+  data_qmain_xts$TRMS_KAU <- data_qmain_xts$TRMSADJ_KAU
+  data_qmain_xts$TRMS_MAU <- data_qmain_xts$TRMSADJ_MAU
+
   data_qmain_xts
 }
