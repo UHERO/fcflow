@@ -173,7 +173,8 @@ plot_qsol <- function(
       )
     ) %>%
     dplyr::filter(.data$selector) %>%
-    dplyr::pull(.data$value)
+    dplyr::pull(.data$value) %>%
+    stringr::str_remove_all("(_SOL|_Q|_[0-9]{2,4}Q[1-4])$")
 
   if (isTRUE(save_outputs)) {
     fcst_prev_hist %>%
