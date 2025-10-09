@@ -10,7 +10,7 @@ paths:
   figures: "output/figures"
 
 constants:
-  bank_start: 1970.1
+  bank_start: 1900.1
   bank_end: 2100.4
 
 data_qmain:
@@ -22,14 +22,15 @@ data_qmain:
 
 combine_equations:
   eq_subset:
-    - ocup
-    - prm
-    - pprm
-    - trms
-    - vday
-    - vexp
-    - vis
-    - vlos
+    # - ocup
+    # - prm
+    # - pprm
+    # - trms
+    # - vday
+    # - vexp
+    # - vis
+    # - vlos
+    - qmod
   save_outputs: true
 
 make_data_qmod:
@@ -42,6 +43,7 @@ make_data_qmod:
 make_qmod:
   reestimate: true
   save_eq: true
+  max_lag: 9
   force_tsrange: false
   est_start: 1990.1
   est_end: 2019.4
@@ -49,7 +51,7 @@ make_qmod:
 
 sol_qmod:
   sim_start: 2020.1
-  sim_end: 2029.4
+  sim_end: 2026.1
   sim_iter_limit: 100
   sim_convergence: 0.00001
   save_outputs: true

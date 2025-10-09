@@ -10,7 +10,7 @@
 #' @param cfg Configuration list from [load_forecast_cfg()].
 #' @param data_qmod Optional preloaded xts dataset (defaults to saved output).
 #' @param equations_qmod Optional preloaded model definition.
-#' 
+#'
 #' @return Invisible list with estimation results, add factors, exogenous
 #'   ranges, and the underlying data.
 #' @export
@@ -22,6 +22,7 @@ make_qmod <- function(
   curr_vint <- require_cfg(cfg, c("vintages", "curr"))
   reestimate <- require_cfg(cfg, c("make_qmod", "reestimate"))
   save_eq <- require_cfg(cfg, c("make_qmod", "save_eq"))
+  max_lag <- require_cfg(cfg, c("make_qmod", "max_lag"))
   force_est_tsrange <- require_cfg(cfg, c("make_qmod", "force_tsrange"))
   est_start <- require_cfg(cfg, c("make_qmod", "est_start"))
   est_end <- require_cfg(cfg, c("make_qmod", "est_end"))
@@ -100,7 +101,8 @@ make_qmod <- function(
     equations_data_qmod <- bimets::LOAD_MODEL_DATA(
       model = equations_qmod,
       modelData = data_qbimets
-    )
+    ) %>%
+      fcutils::set_tsrange(max_lag = max_lag)
 
     if (isTRUE(save_eq)) {
       est_output_file <- here::here(

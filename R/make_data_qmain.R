@@ -102,7 +102,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
       )
   }
 
-  invisible(data_qmain_xts)
+  invisible(data_qmain_xts[smpl_bnk])
 }
 
 if (identical(environment(), globalenv())) {
