@@ -62,6 +62,11 @@ extend_qmain_history <- function(data_qmain_xts, dat_raw_dir) {
   ) %>%
     dplyr::filter(.data$start.x > .data$start.y)
 
+  message(
+    "The history of the following series will be extended: ",
+    stringr::str_flatten(ser_ext$id, collapse = ", ")
+  )
+
   # extend data_qmain_xts with the longer histories from aremos
   data_qmain_xts <- data_qmain_xts %>%
     fcutils::multi_chain(data_aremos_hist_xts, ser_ext$id)

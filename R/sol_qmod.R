@@ -35,6 +35,7 @@ sol_qmod <- function(
   sim_end <- lubridate::parse_date_time(sim_end, c("yq", "ymd")) %>%
     lubridate::as_date()
 
+  message("Get tsrange for simulation...")
   sim_tsrange <- c(
     lubridate::year(sim_start),
     lubridate::quarter(sim_start),
@@ -43,6 +44,7 @@ sol_qmod <- function(
   )
 
   if (is.null(est_equations)) {
+    message("Load estimated equations...")
     est_equations_qmod <- readRDS(
       file = here::here(
         eqn_dir,
@@ -54,6 +56,7 @@ sol_qmod <- function(
   }
 
   if (is.null(exog_range)) {
+    message("Load ragged edge...")
     exog_range <- readRDS(
       file = here::here(
         eqn_dir,
@@ -63,6 +66,7 @@ sol_qmod <- function(
   }
 
   if (is.null(add_factors)) {
+    message("Load addfactors...")
     add_qmod_xts <- readRDS(
       file = here::here(dat_prcsd_dir, stringr::str_glue("add_qmod_{0}.RDS"))
     )
@@ -70,12 +74,14 @@ sol_qmod <- function(
     add_qmod_xts <- add_factors
   }
 
+  message("Convert addfactors to bimets...")
   # BIMETS expects a list of individual time-series objects for constant adjustments
   add_qmod.bimets <- add_qmod_xts %>%
     tsbox::ts_tbl() %>%
     tsbox::ts_tslist() %>%
     purrr::map(bimets::as.bimets)
 
+  message("Solve model...")
   sim_qmod <- bimets::SIMULATE(
     est_equations_qmod,
     simType = "FORECAST",
@@ -87,6 +93,7 @@ sol_qmod <- function(
     quietly = FALSE
   )
 
+  message("Extract forecast...")
   # extract just the endogenous forecast paths and convert back to xts for downstream steps
   fcst_xts <- sim_qmod$simulation[sim_qmod$vendog, drop = FALSE] %>%
     fcutils::set_attr_tslist() %>%
@@ -94,6 +101,7 @@ sol_qmod <- function(
     tsbox::ts_xts()
 
   if (isTRUE(save_outputs)) {
+    message("Save forecast data...")
     # keep both the add factors and the forecast so analysts can tweak and plot
     add_qmod_xts %>%
       tsbox::ts_tbl() %>%

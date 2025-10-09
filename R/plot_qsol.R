@@ -93,6 +93,7 @@ plot_qsol <- function(
 
   # load the current-vintage forecast (or use the override passed into the function)
   if (isTRUE(load_curr_vint)) {
+    message("Load current forecast...")
     fcst <- readRDS(
       file = here::here(
         dat_prcsd_dir,
@@ -111,6 +112,7 @@ plot_qsol <- function(
 
   # previous forecast gives the “old” path for comparison in the plots
   if (isTRUE(load_prev_vint)) {
+    message("Load previous forecast...")
     prev_fcst <- readRDS(
       file = here::here(
         dat_prcsd_dir,
@@ -135,6 +137,7 @@ plot_qsol <- function(
 
   # history supplies the actual data points so plots can show how forecasts converge to reality
   if (isTRUE(load_history)) {
+    message("Load history...")
     history <- readRDS(
       file = here::here(
         dat_prcsd_dir,
@@ -177,6 +180,7 @@ plot_qsol <- function(
     stringr::str_remove_all("(_SOL|_Q|_[0-9]{2,4}Q[1-4])$")
 
   if (isTRUE(save_outputs)) {
+    message("Save plot data...")
     fcst_prev_hist %>%
       dplyr::arrange(.data$id, .data$time) %>%
       tsbox::ts_wide() %>%
@@ -186,6 +190,7 @@ plot_qsol <- function(
       ))
   }
 
+  message("Generate plots...")
   # generate one interactive chart per mnemonic family defined in the plot list
   plot_out <- plot_list %>%
     purrr::map(
@@ -204,33 +209,42 @@ plot_qsol <- function(
     )
 
   if (isTRUE(save_outputs)) {
+    message("Save plots...")
     # save the underlying data table and render the HTML dashboards for sharing
     plot_out %>%
       fcutils::save_plot_list(save_loc = plot_loc)
 
-    if (isTRUE(annual)) {
-      fcst_prev_hist_a <- fcst_prev_hist %>%
-        fcutils::aggr(conv_type = "uhero")
+    if (isTRUE(preview_html) && interactive()) {
+      utils::browseURL(plot_loc)
+    }
+  }
 
-      plot_out_a <- plot_list %>%
-        purrr::map(
-          ~ fcutils::plot_fc(
-            fcst_prev_hist_a %>%
-              dplyr::filter(stringr::str_detect(
-                .data$id,
-                stringr::str_c("^", .x)
-              )),
-            rng_start = plot_start,
-            rng_end = as.character(plot_end),
-            width = plot_width,
-            height = plot_height,
-            yoy_gr = yoy_growth,
-            table_start = tab_start,
-            table_end = tab_end,
-            add_table = show_table
-          )
+  if (isTRUE(annual)) {
+    message("Generate annual plots...")
+    fcst_prev_hist_a <- fcst_prev_hist %>%
+      fcutils::aggr(conv_type = "uhero")
+
+    plot_out_a <- plot_list %>%
+      purrr::map(
+        ~ fcutils::plot_fc(
+          fcst_prev_hist_a %>%
+            dplyr::filter(stringr::str_detect(
+              .data$id,
+              stringr::str_c("^", .x)
+            )),
+          rng_start = plot_start,
+          rng_end = as.character(plot_end),
+          width = plot_width,
+          height = plot_height,
+          yoy_gr = yoy_growth,
+          table_start = tab_start,
+          table_end = tab_end,
+          add_table = show_table
         )
+      )
 
+    if (isTRUE(save_outputs)) {
+      message("Save annual plots...")
       plot_out_a %>%
         fcutils::save_plot_list(
           save_loc = stringr::str_replace(plot_loc, ".html", "_A.html")
@@ -239,10 +253,6 @@ plot_qsol <- function(
       if (isTRUE(preview_html) && interactive()) {
         utils::browseURL(stringr::str_replace(plot_loc, ".html", "_A.html"))
       }
-    }
-
-    if (isTRUE(preview_html) && interactive()) {
-      utils::browseURL(plot_loc)
     }
   }
 

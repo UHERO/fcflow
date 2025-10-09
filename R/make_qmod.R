@@ -38,7 +38,7 @@ make_qmod <- function(
   est_end <- lubridate::parse_date_time(est_end, c("yq", "ymd")) %>%
     lubridate::as_date()
 
-  message("Set global est_tsrange...")
+  message("Get global tsrange for estimation...")
   est_tsrange <- c(
     lubridate::year(est_start),
     lubridate::quarter(est_start),
@@ -46,8 +46,8 @@ make_qmod <- function(
     lubridate::quarter(est_end)
   )
 
-  message("Load equations_qmod...")
   if (is.null(equations_qmod)) {
+    message("Load equations...")
     # fall back to the saved equations bundle if none was provided by the caller
     equations_qmod <- readRDS(
       file = here::here(
@@ -57,8 +57,8 @@ make_qmod <- function(
     )
   }
 
-  message("Load data_qmod...")
   if (is.null(data_qmod)) {
+    message("Load data for qmod...")
     # load the model-ready data set that `make_data_qmod()` saved earlier
     data_qmod_xts <- readRDS(
       file = here::here(
@@ -103,16 +103,16 @@ make_qmod <- function(
     purrr::map(bimets::as.bimets)
 
   if (isTRUE(reestimate)) {
+    message("Set local tsrange for estimation...")
     # load the data into each equation and re-estimate so every coefficient reflects the new vintage
-    message("Set local tsrange...")
     equations_data_qmod <- bimets::LOAD_MODEL_DATA(
       model = equations_qmod,
       modelData = data_qbimets
     ) %>%
       fcutils::set_tsrange(max_lag = max_lag)
 
-    message("Sink output...")
     if (isTRUE(save_eq)) {
+      message("Sink output...")
       est_output_file <- here::here(
         eqn_dir,
         stringr::str_glue("est_equations_qmod_{curr_vint}.txt")
@@ -122,7 +122,7 @@ make_qmod <- function(
       cat("\n", "ESTIMATION RESULTS", "\n", sep = "")
     }
 
-    message("Estimate QMOD equations...")
+    message("Estimate qmod equations...")
     est_equations_qmod <- bimets::ESTIMATE(
       equations_data_qmod,
       eqList = equations_data_qmod$vendogBehaviorals,
@@ -131,8 +131,8 @@ make_qmod <- function(
       quietly = FALSE
     )
 
-    message("Add identities...")
     if (isTRUE(save_eq)) {
+      message("Add identities to sink...")
       cat("\n", "ESTIMATION RESULTS - IDENTITIES", "\n", sep = "")
       for (i in seq_along(est_equations_qmod$identities)) {
         cat("\n", "Identity ", i, "\n", sep = "")
@@ -140,7 +140,7 @@ make_qmod <- function(
       }
     }
   } else {
-    message("Load previously estimated equation...")
+    message("Load previously estimated equations...")
     est_equations_qmod <- readRDS(
       file = here::here(
         eqn_dir,
@@ -148,7 +148,7 @@ make_qmod <- function(
       )
     )
 
-    message("Add data to previously estimated equation...")
+    message("Add data to previously estimated equations...")
     est_equations_qmod <- bimets::LOAD_MODEL_DATA(
       model = est_equations_qmod,
       modelData = data_qbimets
@@ -156,7 +156,7 @@ make_qmod <- function(
   }
 
   if (isTRUE(save_outputs)) {
-    message("Save outputs...")
+    message("Save model data...")
     # persist add factors, ragged-edge metadata, and the (possibly re-estimated) BIMETS object
     saveRDS(
       add_qmod_xts,

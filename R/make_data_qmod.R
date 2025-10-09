@@ -40,6 +40,7 @@ make_data_qmod <- function(
   ext_tsrange <- fcutils::p(ext_start, ext_end)
 
   if (is.null(equations_qmod)) {
+    message("Load equations...")
     if (isTRUE(update_equations)) {
       equations_qmod <- combine_equations(cfg = cfg)
     } else {
@@ -53,6 +54,7 @@ make_data_qmod <- function(
   }
 
   if (is.null(data_qmain)) {
+    message("Load main data...")
     if (isTRUE(update_qmain)) {
       data_qmain_xts <- make_data_qmain(cfg = cfg)
     } else {
@@ -73,6 +75,7 @@ make_data_qmod <- function(
   data_qmod_xts <- data_qmain_xts %>%
     tsbox::ts_pick(varlist_qmod)
 
+  message("Load existing forecast to obtain exogenous drivers...")
   existing_forecast <- import_existing_fcst(
     dat_raw_dir = dat_raw_dir,
     dat_prcsd_dir = dat_prcsd_dir,
@@ -84,6 +87,7 @@ make_data_qmod <- function(
   data_existing_fcst_xts <- existing_forecast$data_existing_fcst
   exog_list <- existing_forecast$exog_list
 
+  message("Update model data with exogenous drivers...")
   # copy the pseudo-exogenous paths into the main data set over the simulation range
   data_qmod_xts[ext_tsrange, exog_list] <- data_existing_fcst_xts[
     ext_tsrange,
@@ -91,6 +95,7 @@ make_data_qmod <- function(
   ]
 
   if (isTRUE(save_outputs)) {
+    message("Save model data...")
     saveRDS(
       data_qmod_xts,
       file = here::here(

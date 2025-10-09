@@ -37,6 +37,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   smpl_bnk <- fcutils::p(bank_start, bank_end)
 
   # historical indicator series (calendar dummies, etc.) are stored once and reused
+  message("Load indicators...")
   if (is.null(indicators)) {
     ind_vars_xts <- readRDS(here::here(dat_raw_dir, indicators_file))
   } else {
@@ -49,6 +50,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   # either read the UDAMAN export from disk or download fresh data,
   # then combine with indicators and convert to xts
   if (isTRUE(data_from_disk)) {
+    message("Load main data from disk...")
     data_qmain_xts <- readr::read_csv(here::here(
       dat_raw_dir,
       stringr::str_glue("{exp_id_q}.csv")
@@ -57,6 +59,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
       tsbox::ts_xts() %>%
       tsbox::ts_c(ind_vars_xts)
   } else {
+    message("Load main data from udaman...")
     data_qmain_xts <- fcutils::get_series_exp(
       exp_id_q,
       format = "xts",
@@ -69,12 +72,14 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   # extend series that have a longer history available in 11Q4 AREMOS exports
   # this can eventually be removed
   if (isTRUE(extend_history)) {
+    message("Extend history...")
     data_qmain_xts <- extend_qmain_history(
       data_qmain_xts = data_qmain_xts,
       dat_raw_dir = dat_raw_dir
     )
   }
 
+  message("Ad-hoc data adjustments...")
   # apply any final wrangling steps (e.g., create derived series, clean anomalies)
   data_qmain_xts <- wrangle_data_qmain(data_qmain_xts)
 
@@ -83,6 +88,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
 
   # save both an RDS (for code) and a CSV (for analysts) of the finished dataset
   if (isTRUE(save_outputs)) {
+    message("Save main data...")
     saveRDS(
       data_qmain_xts[smpl_bnk],
       file = here::here(
