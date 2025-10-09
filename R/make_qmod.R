@@ -38,6 +38,7 @@ make_qmod <- function(
   est_end <- lubridate::parse_date_time(est_end, c("yq", "ymd")) %>%
     lubridate::as_date()
 
+  message("Set global est_tsrange...")
   est_tsrange <- c(
     lubridate::year(est_start),
     lubridate::quarter(est_start),
@@ -45,6 +46,7 @@ make_qmod <- function(
     lubridate::quarter(est_end)
   )
 
+  message("Load equations_qmod...")
   if (is.null(equations_qmod)) {
     # fall back to the saved equations bundle if none was provided by the caller
     equations_qmod <- readRDS(
@@ -55,6 +57,7 @@ make_qmod <- function(
     )
   }
 
+  message("Load data_qmod...")
   if (is.null(data_qmod)) {
     # load the model-ready data set that `make_data_qmod()` saved earlier
     data_qmod_xts <- readRDS(
@@ -67,6 +70,7 @@ make_qmod <- function(
     data_qmod_xts <- data_qmod
   }
 
+  message("Initialize addfactors...")
   # add factors start at zero so analysts can later hand-edit the CSV or R file
   add_qmod_xts <- data_qmod_xts %>%
     tsbox::ts_pick(equations_qmod$vendog) %>%
@@ -74,6 +78,7 @@ make_qmod <- function(
     dplyr::mutate(value = 0) %>%
     tsbox::ts_xts()
 
+  message("Capture ragged edge...")
   # capture the ragged edge (last historic observation) for each endogenous variable
   exog_range <- data_qmod_xts %>%
     tsbox::ts_pick(equations_qmod$vendog) %>%
@@ -90,6 +95,7 @@ make_qmod <- function(
       }
     )
 
+  message("Convert from xts to bimets...")
   data_qbimets <- data_qmod_xts %>%
     tsbox::ts_tbl() %>%
     tidyr::drop_na() %>%
@@ -98,12 +104,14 @@ make_qmod <- function(
 
   if (isTRUE(reestimate)) {
     # load the data into each equation and re-estimate so every coefficient reflects the new vintage
+    message("Set local tsrange...")
     equations_data_qmod <- bimets::LOAD_MODEL_DATA(
       model = equations_qmod,
       modelData = data_qbimets
     ) %>%
       fcutils::set_tsrange(max_lag = max_lag)
 
+    message("Sink output...")
     if (isTRUE(save_eq)) {
       est_output_file <- here::here(
         eqn_dir,
@@ -114,6 +122,7 @@ make_qmod <- function(
       cat("\n", "ESTIMATION RESULTS", "\n", sep = "")
     }
 
+    message("Estimate QMOD equations...")
     est_equations_qmod <- bimets::ESTIMATE(
       equations_data_qmod,
       eqList = equations_data_qmod$vendogBehaviorals,
@@ -122,6 +131,7 @@ make_qmod <- function(
       quietly = FALSE
     )
 
+    message("Add identities...")
     if (isTRUE(save_eq)) {
       cat("\n", "ESTIMATION RESULTS - IDENTITIES", "\n", sep = "")
       for (i in seq_along(est_equations_qmod$identities)) {
@@ -130,6 +140,7 @@ make_qmod <- function(
       }
     }
   } else {
+    message("Load previously estimated equation...")
     est_equations_qmod <- readRDS(
       file = here::here(
         eqn_dir,
@@ -137,6 +148,7 @@ make_qmod <- function(
       )
     )
 
+    message("Add data to previously estimated equation...")
     est_equations_qmod <- bimets::LOAD_MODEL_DATA(
       model = est_equations_qmod,
       modelData = data_qbimets
@@ -144,6 +156,7 @@ make_qmod <- function(
   }
 
   if (isTRUE(save_outputs)) {
+    message("Save outputs...")
     # persist add factors, ragged-edge metadata, and the (possibly re-estimated) BIMETS object
     saveRDS(
       add_qmod_xts,

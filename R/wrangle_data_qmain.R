@@ -231,6 +231,11 @@ import_existing_fcst <- function(
   exog_list <- equations_qmod$vexog %>%
     stringr::str_subset("IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON", negate = TRUE)
 
+  message(
+    "The model relies on the following exogenous series (excluding deterministic variables): ",
+    stringr::str_flatten(exog_list, collapse = ", ")
+  )
+
   # ensure the pseudo-exogenous series are available in data_qmod_xts and data_existing_fcst_xts
   missing_in_qmod <- setdiff(exog_list, names(data_qmod_xts))
   if (length(missing_in_qmod) > 0) {
