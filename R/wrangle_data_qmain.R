@@ -390,14 +390,14 @@ wrangle_data_qmain <- function(data_qmain_xts) {
     tsbox::ts_tbl() %>%
     tsbox::ts_wide() %>%
     dplyr::mutate(
-      100 *
-        (dplyr::across(
-          .cols = dplyr::all_of(vadc_list),
-          .names = "{pprm_list}"
-        ) -
-          dplyr::pick(dplyr::all_of(vadccrair_list))) /
-        (dplyr::pick(dplyr::all_of(vplant_list)) /
-          dplyr::pick(dplyr::all_of(ocupp_list)))
+      (dplyr::across(
+        .cols = dplyr::all_of(vadc_list),
+        .names = "{pprm_list}"
+      ) -
+        dplyr::pick(dplyr::all_of(vadccrair_list)) * 1 / 7) /
+        (dplyr::pick(dplyr::all_of(vplant_list)) *
+          dplyr::pick(dplyr::all_of(ocupp_list)) /
+          100)
     ) %>%
     dplyr::mutate(
       dplyr::across(
