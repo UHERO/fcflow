@@ -9,7 +9,7 @@ returning the full forecast trajectory alongside metadata."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fcflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9010</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,7 @@ returning the full forecast trajectory alongside metadata.</p>
 <span>  cfg <span class="op">=</span> <span class="fu"><a href="load_forecast_cfg.html">load_forecast_cfg</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  est_equations <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  exog_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  add_factors <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  add0_factors <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -64,8 +64,8 @@ returning the full forecast trajectory alongside metadata.</p>
 <dd><p>Optional ragged-edge metadata list.</p></dd>
 
 
-<dt id="arg-add-factors">add_factors<a class="anchor" aria-label="anchor" href="#arg-add-factors"></a></dt>
-<dd><p>Optional xts object of add factors.</p></dd>
+<dt id="arg-add-factors">add0_factors<a class="anchor" aria-label="anchor" href="#arg-add-factors"></a></dt>
+<dd><p>Optional xts object of add factors set to 0.</p></dd>
 
 </dl></div>
     <div class="section level2">
