@@ -39,10 +39,10 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
 
   # historical indicator series (calendar dummies, etc.) are stored once and reused
   message("Load indicators...")
-  if (is.null(indicators_file)) {
-    ind_vars_xts <- make_indicators(cfg)
-  } else {
+  if (is.null(indicators)) {
     ind_vars_xts <- readRDS(here::here(dat_raw_dir, indicators_file))
+  } else {
+    ind_vars_xts <- indicators
   }
 
   # ensure we have an xts object of indicators (necessary to avoid warnings in devtools::check())
