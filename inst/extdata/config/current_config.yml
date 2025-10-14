@@ -6,6 +6,8 @@ paths:
   raw: "data/raw"
   processed: "data/processed"
   equations: "equations"
+  wrangl_script: "inst/extfuns/wrangle_data_25Q2.R"
+  addfac_script: "inst/extfuns/add_qmod_25Q2.R"
   output: "output"
   figures: "output/figures"
 
@@ -43,6 +45,7 @@ make_data_qmod:
 make_qmod:
   reestimate: true
   save_eq: true
+  discover_tsrange: true
   max_lag: 9
   force_tsrange: false
   est_start: 1990.1

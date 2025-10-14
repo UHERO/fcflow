@@ -22,6 +22,7 @@ make_qmod <- function(
   curr_vint <- require_cfg(cfg, c("vintages", "curr"))
   reestimate <- require_cfg(cfg, c("make_qmod", "reestimate"))
   save_eq <- require_cfg(cfg, c("make_qmod", "save_eq"))
+  discover_tsrange <- require_cfg(cfg, c("make_qmod", "discover_tsrange"))
   max_lag <- require_cfg(cfg, c("make_qmod", "max_lag"))
   force_est_tsrange <- require_cfg(cfg, c("make_qmod", "force_tsrange"))
   est_start <- require_cfg(cfg, c("make_qmod", "est_start"))
@@ -72,7 +73,7 @@ make_qmod <- function(
 
   message("Initialize addfactors...")
   # add factors start at zero so analysts can later hand-edit the CSV or R file
-  add_qmod_xts <- data_qmod_xts %>%
+  add0_qmod_xts <- data_qmod_xts %>%
     tsbox::ts_pick(equations_qmod$vendog) %>%
     tsbox::ts_tbl() %>%
     dplyr::mutate(value = 0) %>%
@@ -103,16 +104,21 @@ make_qmod <- function(
     purrr::map(bimets::as.bimets)
 
   if (isTRUE(reestimate)) {
-    message("Set local tsrange for estimation...")
+    message("Load data into model...")
     # load the data into each equation and re-estimate so every coefficient reflects the new vintage
     equations_data_qmod <- bimets::LOAD_MODEL_DATA(
       model = equations_qmod,
       modelData = data_qbimets
-    ) %>%
-      fcutils::set_tsrange(max_lag = max_lag)
+    )
+
+    if (isTRUE(discover_tsrange)) {
+      message("Set local tsrange for estimation...")
+      equations_data_qmod <- equations_data_qmod %>%
+        fcutils::set_tsrange(max_lag = max_lag)
+    }
 
     if (isTRUE(save_eq)) {
-      message("Sink output...")
+      message("Sink output in ", eqn_dir)
       est_output_file <- here::here(
         eqn_dir,
         stringr::str_glue("est_equations_qmod_{curr_vint}.txt")
@@ -159,8 +165,8 @@ make_qmod <- function(
     message("Save model data...")
     # persist add factors, ragged-edge metadata, and the (possibly re-estimated) BIMETS object
     saveRDS(
-      add_qmod_xts,
-      file = here::here(dat_prcsd_dir, stringr::str_glue("add_qmod_{0}.RDS"))
+      add0_qmod_xts,
+      file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
     )
 
     saveRDS(
@@ -183,7 +189,7 @@ make_qmod <- function(
   invisible(
     list(
       est_equations = est_equations_qmod,
-      add_factors = add_qmod_xts,
+      add0_factors = add0_qmod_xts,
       exog_range = exog_range,
       data_qmod = data_qmod_xts
     )

@@ -8,7 +8,7 @@ sol_qmod(
   cfg = load_forecast_cfg(),
   est_equations = NULL,
   exog_range = NULL,
-  add_factors = NULL
+  add0_factors = NULL
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ sol_qmod(
 
 \item{exog_range}{Optional ragged-edge metadata list.}
 
-\item{add_factors}{Optional xts object of add factors.}
+\item{add0_factors}{Optional xts object of add factors set to 0.}
 }
 \value{
 Invisible list containing the BIMETS simulation object, forecast,

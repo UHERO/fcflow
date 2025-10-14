@@ -23,6 +23,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
 
   dat_raw_dir <- require_cfg(cfg, c("paths", "raw"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
+  wrangl_script <- require_cfg(cfg, c("paths", "wrangl_script"))
 
   bank_start <- require_cfg(cfg, c("constants", "bank_start"))
   bank_end <- require_cfg(cfg, c("constants", "bank_end"))
@@ -81,7 +82,13 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
 
   message("Ad-hoc data adjustments...")
   # apply any final wrangling steps (e.g., create derived series, clean anomalies)
-  data_qmain_xts <- wrangle_data_qmain(data_qmain_xts)
+  script_result_env <- run_script_with_args(
+    path = here::here(wrangl_script),
+    data_qmain_xts = data_qmain_xts
+  )
+
+  # retrieve the modified data from the script's environment
+  data_qmain_xts <- script_result_env$data_qmain_xts
 
   # ensure we are handing back an xts object
   stopifnot(xts::is.xts(data_qmain_xts))

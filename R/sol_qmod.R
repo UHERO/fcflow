@@ -10,7 +10,7 @@
 #' @param cfg Configuration list from [load_forecast_cfg()].
 #' @param est_equations Optional BIMETS model object with data attached.
 #' @param exog_range Optional ragged-edge metadata list.
-#' @param add_factors Optional xts object of add factors.
+#' @param add0_factors Optional xts object of add factors set to 0.
 #'
 #' @return Invisible list containing the BIMETS simulation object, forecast,
 #'   add factors, and exogenous range used.
@@ -19,7 +19,7 @@ sol_qmod <- function(
   cfg = load_forecast_cfg(),
   est_equations = NULL,
   exog_range = NULL,
-  add_factors = NULL
+  add0_factors = NULL
 ) {
   curr_vint <- require_cfg(cfg, c("vintages", "curr"))
   sim_start <- require_cfg(cfg, c("sol_qmod", "sim_start"))
@@ -29,6 +29,7 @@ sol_qmod <- function(
   save_outputs <- require_cfg(cfg, c("sol_qmod", "save_outputs"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   eqn_dir <- require_cfg(cfg, c("paths", "equations"))
+  addfac_script <- require_cfg(cfg, c("paths", "addfac_script"))
 
   sim_start <- lubridate::parse_date_time(sim_start, c("yq", "ymd")) %>%
     lubridate::as_date()
@@ -65,14 +66,24 @@ sol_qmod <- function(
     )
   }
 
-  if (is.null(add_factors)) {
-    message("Load addfactors...")
-    add_qmod_xts <- readRDS(
-      file = here::here(dat_prcsd_dir, stringr::str_glue("add_qmod_{0}.RDS"))
+  if (is.null(add0_factors)) {
+    message("Load 0 addfactors...")
+    add0_qmod_xts <- readRDS(
+      file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
     )
   } else {
-    add_qmod_xts <- add_factors
+    add0_qmod_xts <- add0_factors
   }
+
+  message("Modify addfactors...")
+  # set addfactors
+  script_result_env <- run_script_with_args(
+    path = here::here(addfac_script),
+    add0_qmod_xts = add0_qmod_xts
+  )
+
+  # retrieve the modified data from the script's environment
+  add_qmod_xts <- script_result_env$add_qmod_xts
 
   message("Convert addfactors to bimets...")
   # BIMETS expects a list of individual time-series objects for constant adjustments
