@@ -19,4 +19,4 @@ add_qmod <- function(add0_qmod_xts) {
   add_qmod_xts
 }
 
-add_qmod(add0_qmod_xts)
+add_qmod_xts <- add_qmod(add0_qmod_xts)

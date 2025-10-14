@@ -250,4 +250,4 @@ wrangle_data <- function(data_qmain_xts) {
   data_qmain_xts
 }
 
-wrangle_data(data_qmain_xts)
+data_qmain_xts <- wrangle_data(data_qmain_xts)
