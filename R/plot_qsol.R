@@ -31,7 +31,7 @@ plot_qsol <- function(
   qsol_plot_list <- require_cfg(cfg, c("paths", "qsol_plot_list"))
 
   plot_cfg <- require_cfg(cfg, c("plot_qsol"))
-  save_outputs <- require_cfg(plot_cfg, c("save_outputs"))
+  save_output <- require_cfg(plot_cfg, c("save_output"))
   preview_html <- require_cfg(plot_cfg, c("preview_html"))
   tourplot <- require_cfg(plot_cfg, c("tourplot"))
   jobonly <- require_cfg(plot_cfg, c("jobonly"))
@@ -189,7 +189,7 @@ plot_qsol <- function(
     dplyr::pull(.data$value) %>%
     stringr::str_remove_all("(_SOL|_Q|_[0-9]{2,4}Q[1-4])$")
 
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     message("Save plot data...")
     fcst_prev_hist %>%
       dplyr::arrange(.data$id, .data$time) %>%
@@ -218,7 +218,7 @@ plot_qsol <- function(
       )
     )
 
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     message("Save plots...")
     # save the underlying data table and render the HTML dashboards for sharing
     plot_out %>%
@@ -253,7 +253,7 @@ plot_qsol <- function(
         )
       )
 
-    if (isTRUE(save_outputs)) {
+    if (isTRUE(save_output)) {
       message("Save annual plots...")
       plot_out_a %>%
         fcutils::save_plot_list(
