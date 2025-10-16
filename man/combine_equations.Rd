@@ -14,5 +14,7 @@ Invisible BIMETS model object created from the combined equations
 }
 \description{
 Reads individual equation text files, filters by optional subset, and
-writes a combined BIMETS model file for the current vintage.
+writes a combined BIMETS model file for the current vintage. The individual
+equation files should be stored at the equations path specified in the
+configuration file and their names have to end with "eq.txt".
 }

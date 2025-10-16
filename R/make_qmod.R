@@ -27,7 +27,7 @@ make_qmod <- function(
   force_est_tsrange <- require_cfg(cfg, c("make_qmod", "force_tsrange"))
   est_start <- require_cfg(cfg, c("make_qmod", "est_start"))
   est_end <- require_cfg(cfg, c("make_qmod", "est_end"))
-  save_outputs <- require_cfg(cfg, c("make_qmod", "save_outputs"))
+  save_output <- require_cfg(cfg, c("make_qmod", "save_output"))
 
   # outline: prepare directories, load data/equations, optionally re-estimate every equation,
   # and then cache the add factors plus ragged-edge metadata for sims and plotting
@@ -161,7 +161,7 @@ make_qmod <- function(
     )
   }
 
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     message("Save model data...")
     # persist add factors, ragged-edge metadata, and the (possibly re-estimated) BIMETS object
     saveRDS(

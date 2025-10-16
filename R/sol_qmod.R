@@ -26,7 +26,7 @@ sol_qmod <- function(
   sim_end <- require_cfg(cfg, c("sol_qmod", "sim_end"))
   sim_iter_limit <- require_cfg(cfg, c("sol_qmod", "sim_iter_limit"))
   sim_convergence <- require_cfg(cfg, c("sol_qmod", "sim_convergence"))
-  save_outputs <- require_cfg(cfg, c("sol_qmod", "save_outputs"))
+  save_output <- require_cfg(cfg, c("sol_qmod", "save_output"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   eqn_dir <- require_cfg(cfg, c("paths", "equations"))
   addfac_script <- require_cfg(cfg, c("paths", "addfac_script"))
@@ -111,9 +111,17 @@ sol_qmod <- function(
     tsbox::ts_tbl() %>%
     tsbox::ts_xts()
 
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     message("Save forecast data...")
     # keep both the add factors and the forecast so analysts can tweak and plot
+    saveRDS(
+      add_qmod_xts,
+      file = here::here(
+        dat_prcsd_dir,
+        stringr::str_glue("add_qmod_{curr_vint}.RDS")
+      )
+    )
+
     add_qmod_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
@@ -131,6 +139,16 @@ sol_qmod <- function(
         stringr::str_glue("fcst_{curr_vint}.RDS")
       )
     )
+
+    fcst_xts %>%
+      tsbox::ts_tbl() %>%
+      tsbox::ts_wide() %>%
+      readr::write_csv(
+        file = here::here(
+          dat_prcsd_dir,
+          stringr::str_glue("fcst_{curr_vint}.csv")
+        )
+      )
   }
 
   invisible(

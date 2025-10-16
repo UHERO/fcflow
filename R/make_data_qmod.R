@@ -25,11 +25,12 @@ make_data_qmod <- function(
   update_equations <- require_cfg(cfg, c("make_data_qmod", "update_equations"))
   ext_start <- require_cfg(cfg, c("make_data_qmod", "ext_start"))
   ext_end <- require_cfg(cfg, c("make_data_qmod", "ext_end"))
-  save_outputs <- require_cfg(cfg, c("make_data_qmod", "save_outputs"))
+  save_output <- require_cfg(cfg, c("make_data_qmod", "save_output"))
 
   dat_raw_dir <- require_cfg(cfg, c("paths", "raw"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   eqn_dir <- require_cfg(cfg, c("paths", "equations"))
+  impext_script <- require_cfg(cfg, c("paths", "impext_script"))
 
   # parse the extension start and end dates
   ext_start <- lubridate::parse_date_time(ext_start, c("yq", "ymd")) %>%
@@ -76,13 +77,16 @@ make_data_qmod <- function(
     tsbox::ts_pick(varlist_qmod)
 
   message("Load existing forecast to obtain exogenous drivers...")
-  existing_forecast <- import_existing_fcst(
+  script_result_env <- run_script_with_args(
+    path = here::here(impext_script),
     dat_raw_dir = dat_raw_dir,
     dat_prcsd_dir = dat_prcsd_dir,
     equations_qmod = equations_qmod,
     data_qmod_xts = data_qmod_xts,
-    save_outputs = save_outputs
+    save_output = save_output
   )
+  # retrieve the modified data from the script's environment
+  existing_forecast <- script_result_env$existing_forecast
 
   data_existing_fcst_xts <- existing_forecast$data_existing_fcst
   exog_list <- existing_forecast$exog_list
@@ -94,7 +98,7 @@ make_data_qmod <- function(
     exog_list
   ]
 
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     message("Save model data...")
     saveRDS(
       data_qmod_xts,

@@ -2,10 +2,33 @@
 # Combine individual equation files into a model definition
 # *************************
 
+#' Load Lines from an Individual Equation File
+#'
+#' @param eq_file Path to an individual equation file.
+#' @return Tibble containing the BIMETS-relevant lines from the equation file.
+#'
+#' @keywords internal
+#' @noRd
+read_eq <- function(eq_file) {
+  readr::read_lines(eq_file) %>%
+    tibble::as_tibble() %>%
+    dplyr::filter(stringr::str_detect(
+      .data$value,
+      c(
+        "(?<!#)IDENTITY>|(?<!#)BEHAVIORAL>|(?<!#)TSRANGE|(?<!#)EQ>|(?<!#)COEFF>"
+      )
+    )) %>%
+    dplyr::add_row(value = "", .before = 1) %>%
+    dplyr::add_row(value = "")
+}
+
+
 #' Combine Individual Equation Files
 #'
 #' Reads individual equation text files, filters by optional subset, and
-#' writes a combined BIMETS model file for the current vintage.
+#' writes a combined BIMETS model file for the current vintage. The individual
+#' equation files should be stored at the equations path specified in the
+#' configuration file and their names have to end with "eq.txt".
 #'
 #' @param cfg Configuration list from [load_forecast_cfg()].
 #' @return Invisible BIMETS model object created from the combined equations
@@ -13,22 +36,8 @@
 combine_equations <- function(cfg = load_forecast_cfg()) {
   curr_vint <- require_cfg(cfg, c("vintages", "curr"))
   eq_subset <- require_cfg(cfg, c("combine_equations", "eq_subset"))
-  save_outputs <- require_cfg(cfg, c("combine_equations", "save_outputs"))
+  save_output <- require_cfg(cfg, c("combine_equations", "save_output"))
   eqn_dir <- require_cfg(cfg, c("paths", "equations"))
-
-  # helper: pull the BIMETS-relevant lines out of a single equation file
-  read_eq <- function(eq_file) {
-    readr::read_lines(eq_file) %>%
-      tibble::as_tibble() %>%
-      dplyr::filter(stringr::str_detect(
-        .data$value,
-        c(
-          "(?<!#)IDENTITY>|(?<!#)BEHAVIORAL>|(?<!#)TSRANGE|(?<!#)EQ>|(?<!#)COEFF>"
-        )
-      )) %>%
-      dplyr::add_row(value = "", .before = 1) %>%
-      dplyr::add_row(value = "")
-  }
 
   # list all variable specific files in the equations directory
   list_of_files <- fs::dir_ls(path = here::here(eqn_dir)) %>%
@@ -49,7 +58,7 @@ combine_equations <- function(cfg = load_forecast_cfg()) {
     dplyr::add_row(value = "\nEND")
 
   # write the combined text so it can be inspected or reloaded later
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     readr::write_lines(
       all_eqs %>% dplyr::pull(.data$value),
       here::here(eqn_dir, stringr::str_glue("equations_qmod_{curr_vint}.txt"))
@@ -65,7 +74,7 @@ combine_equations <- function(cfg = load_forecast_cfg()) {
   )
 
   # save the BIMETS object so estimation/solving can reuse it without re-parsing text
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     saveRDS(
       equations_qmod,
       file = here::here(

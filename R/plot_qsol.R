@@ -27,6 +27,8 @@ plot_qsol <- function(
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   out_dir <- require_cfg(cfg, c("paths", "output"))
   out_fig_dir <- require_cfg(cfg, c("paths", "figures"))
+  toursol_plot_list <- require_cfg(cfg, c("paths", "toursol_plot_list"))
+  qsol_plot_list <- require_cfg(cfg, c("paths", "qsol_plot_list"))
 
   plot_cfg <- require_cfg(cfg, c("plot_qsol"))
   save_outputs <- require_cfg(plot_cfg, c("save_outputs"))
@@ -75,9 +77,17 @@ plot_qsol <- function(
 
   # choose the appropriate plot list (tourism vs macro) based on the config
   if (isTRUE(tourplot)) {
-    source(here::here("lists", "toursol_plots_list.txt"))
+    script_result_env <- run_script_with_args(
+      path = here::here(toursol_plot_list)
+    )
+    # retrieve the modified data from the script's environment
+    plot_list <- script_result_env$plot_list
   } else {
-    source(here::here("lists", "qsol_plots_list.txt"))
+    script_result_env <- run_script_with_args(
+      path = here::here(qsol_plot_list)
+    )
+    # retrieve the modified data from the script's environment
+    plot_list <- script_result_env$plot_list
   }
 
   # optional filters let users focus on job-related, income-related, or custom subsets of series

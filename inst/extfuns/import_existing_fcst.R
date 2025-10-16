@@ -1,80 +1,8 @@
 # **************************
-# Data helpers for forecast
+# Import Existing Forecast
 # **************************
 
-#' Optionally Extend Master Dataset with AREMOS History
-#'
-#' Pulls 11Q4 AREMOS exports and splices longer histories onto the main
-#' dataset when requested.
-#'
-#' @param data_qmain_xts xts object containing the UDAMAN pull.
-#' @param dat_raw_dir Base directory for raw data files.
-#'
-#' @return xts object, potentially extended with archival data.
-#' @keywords internal
-extend_qmain_history <- function(data_qmain_xts, dat_raw_dir) {
-  # load aremos data from the 11Q4 subfolder
-  data_aremos_hist_xts <- c(
-    "TOUR1",
-    "TOUR2",
-    "TOUR3",
-    "JP1",
-    "US1",
-    "TAX1",
-    "TAX2",
-    "BEA1",
-    "BLS1",
-    "BLS2",
-    "BLS3",
-    "MISC1",
-    "MISC2"
-  ) %>%
-    purrr::map(
-      ~ readr::read_tsv(here::here(
-        dat_raw_dir,
-        "11Q4",
-        stringr::str_glue(.x, ".TSV")
-      ))
-    ) %>%
-    purrr::reduce(~ dplyr::full_join(.x, .y, by = c("DATE"))) %>%
-    dplyr::mutate(
-      time = lubridate::yq(.data$DATE),
-      .before = "DATE",
-      .keep = "unused"
-    ) %>%
-    dplyr::rename_with(
-      ~ stringr::str_replace_all(., c("@" = "_", "OCUP%" = "OCUPP"))
-    ) %>%
-    dplyr::rename_with(
-      ~ stringr::str_replace_all(
-        .,
-        c("OCUPP" = "OCCUPPADJ", "TRMS" = "TRMSADJ")
-      )
-    ) %>%
-    tsbox::ts_long() %>%
-    tsbox::ts_xts()
-
-  # identify series in data_qmain_xts have a longer history in data_aremos_hist_xts
-  ser_ext <- dplyr::full_join(
-    tsbox::ts_summary(data_qmain_xts),
-    tsbox::ts_summary(data_aremos_hist_xts),
-    by = "id"
-  ) %>%
-    dplyr::filter(.data$start.x > .data$start.y)
-
-  message(
-    "The history of the following series will be extended: ",
-    stringr::str_flatten(ser_ext$id, collapse = ", ")
-  )
-
-  # extend data_qmain_xts with the longer histories from aremos
-  data_qmain_xts <- data_qmain_xts %>%
-    fcutils::multi_chain(data_aremos_hist_xts, ser_ext$id)
-
-  data_qmain_xts
-}
-
-#' Import Existing Forecasts
+#' Import Existing Forecast
 #'
 #' Loads quarterly and annual existing forecasts,
 #' and constructs quarterly pseudo-exogenous series required by QMOD.
@@ -82,7 +10,7 @@ extend_qmain_history <- function(data_qmain_xts, dat_raw_dir) {
 #' @param dat_raw_dir Base directory for raw existing forecasts
 #' @param equations_qmod BIMETS equation bundle (used for the exogenous list).
 #' @param data_qmod_xts xts object of the filtered QMOD dataset.
-#' @param save_outputs logical indicating if data should be saved.
+#' @param save_output logical indicating if data should be saved.
 #'
 #' @return List with `data_existing_fcst` (xts) and `exog_list` (character vector).
 #' @keywords internal
@@ -91,7 +19,7 @@ import_existing_fcst <- function(
   dat_prcsd_dir,
   equations_qmod,
   data_qmod_xts,
-  save_outputs
+  save_output
 ) {
   # load quarterly existing forecasts
   data_existing_fcst_xts <- readr::read_tsv(here::here(
@@ -268,7 +196,7 @@ import_existing_fcst <- function(
     tsbox::ts_c(data_exog_ext_fcst_xts) %>%
     tsbox::ts_xts()
 
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     # save the pseudo-exogenous paths alongside the main dataset
     saveRDS(
       data_existing_fcst_xts,
@@ -294,3 +222,11 @@ import_existing_fcst <- function(
     exog_list = exog_list
   )
 }
+
+existing_forecast <- import_existing_fcst(
+  dat_raw_dir,
+  dat_prcsd_dir,
+  equations_qmod,
+  data_qmod_xts,
+  save_output
+)

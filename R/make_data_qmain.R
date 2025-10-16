@@ -19,10 +19,11 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   exp_id_q <- require_cfg(cfg, c("data_qmain", "exp_id_q"))
   extend_history <- require_cfg(cfg, c("data_qmain", "extend_history"))
   indicators_file <- require_cfg(cfg, c("data_qmain", "indicators_file"))
-  save_outputs <- require_cfg(cfg, c("data_qmain", "save_outputs"))
+  save_output <- require_cfg(cfg, c("data_qmain", "save_output"))
 
   dat_raw_dir <- require_cfg(cfg, c("paths", "raw"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
+  extend_script <- require_cfg(cfg, c("paths", "extend_script"))
   wrangl_script <- require_cfg(cfg, c("paths", "wrangl_script"))
 
   bank_start <- require_cfg(cfg, c("constants", "bank_start"))
@@ -74,10 +75,13 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   # this can eventually be removed
   if (isTRUE(extend_history)) {
     message("Extend history...")
-    data_qmain_xts <- extend_qmain_history(
+    script_result_env <- run_script_with_args(
+      path = here::here(extend_script),
       data_qmain_xts = data_qmain_xts,
       dat_raw_dir = dat_raw_dir
     )
+    # retrieve the modified data from the script's environment
+    data_qmain_xts <- script_result_env$data_qmain_xts
   }
 
   message("Ad-hoc data adjustments...")
@@ -94,7 +98,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   stopifnot(xts::is.xts(data_qmain_xts))
 
   # save both an RDS (for code) and a CSV (for analysts) of the finished dataset
-  if (isTRUE(save_outputs)) {
+  if (isTRUE(save_output)) {
     message("Save main data...")
     saveRDS(
       data_qmain_xts[smpl_bnk],
