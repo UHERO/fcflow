@@ -7,7 +7,8 @@
 #' Loads quarterly and annual existing forecasts,
 #' and constructs quarterly pseudo-exogenous series required by QMOD.
 #'
-#' @param dat_raw_dir Base directory for raw existing forecasts
+#' @param dat_raw_dir Directory for raw existing forecasts
+#' @param dat_prcsd_dir Directory for processed existing forecasts
 #' @param equations_qmod BIMETS equation bundle (used for the exogenous list).
 #' @param data_qmod_xts xts object of the filtered QMOD dataset.
 #' @param save_output logical indicating if data should be saved.

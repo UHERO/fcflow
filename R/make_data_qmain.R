@@ -84,6 +84,9 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
     data_qmain_xts <- script_result_env$data_qmain_xts
   }
 
+  # restrict data to the bank sample period
+  data_qmain_xts <- data_qmain_xts[smpl_bnk]
+
   message("Ad-hoc data adjustments...")
   # apply any final wrangling steps (e.g., create derived series, clean anomalies)
   script_result_env <- run_script_with_args(
@@ -101,7 +104,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   if (isTRUE(save_output)) {
     message("Save main data...")
     saveRDS(
-      data_qmain_xts[smpl_bnk],
+      data_qmain_xts,
       file = here::here(
         dat_prcsd_dir,
         stringr::str_glue("data_qmain_{curr_vint}.RDS")
@@ -119,7 +122,7 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
       )
   }
 
-  invisible(data_qmain_xts[smpl_bnk])
+  invisible(data_qmain_xts)
 }
 
 if (identical(environment(), globalenv())) {
