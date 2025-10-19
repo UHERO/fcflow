@@ -18,8 +18,8 @@ load_forecast_cfg <- function(path = NULL) {
   candidate_paths <- c(
     path,
     Sys.getenv("MODDEV_CONFIG", ""),
-    here::here("config", "current_config.yml"),
-    system.file("extdata", "config", "current_config.yml", package = "moddev")
+    here::here("config", "config.yml"),
+    system.file("extdata", "config", "config.yml", package = "moddev")
   )
 
   candidate_paths <- Filter(

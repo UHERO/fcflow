@@ -133,13 +133,14 @@ plot_qsol <- function(
       dplyr::mutate(
         id = stringr::str_glue("{id}_{prev_vint}") %>% as.character()
       )
-  } else if (!is.null(prev_fcst)) {
-    prev_fcst <- prev_fcst %>%
-      tsbox::ts_tbl() %>%
-      dplyr::mutate(
-        id = stringr::str_glue("{id}_{prev_vint}") %>% as.character()
-      )
-  } else {
+    # } else if (!is.null(prev_fcst)) {
+  } else if (is.null(prev_fcst)) {
+    #   prev_fcst <- prev_fcst %>%
+    #     tsbox::ts_tbl() %>%
+    #     dplyr::mutate(
+    #       id = stringr::str_glue("{id}_{prev_vint}") %>% as.character()
+    #     )
+    # } else {
     stop(
       "Previous forecast data must be supplied when load_prev_vint is FALSE."
     )
@@ -161,17 +162,18 @@ plot_qsol <- function(
             stringr::str_replace("_SOL", ""))
       ) %>%
       dplyr::mutate(id = stringr::str_c(.data$id, "_Q"))
-  } else if (!is.null(history)) {
-    history <- history %>%
-      tsbox::ts_tbl() %>%
-      dplyr::mutate(id = stringr::str_replace(.data$id, "_Q$", "")) %>%
-      dplyr::filter(
-        .data$id %in%
-          (dplyr::pull(fcst, .data$id) %>%
-            stringr::str_replace("_SOL", ""))
-      ) %>%
-      dplyr::mutate(id = stringr::str_c(.data$id, "_Q"))
-  } else {
+    # } else if (!is.null(history)) {
+  } else if (is.null(history)) {
+    #   history <- history %>%
+    #     tsbox::ts_tbl() %>%
+    #     dplyr::mutate(id = stringr::str_replace(.data$id, "_Q$", "")) %>%
+    #     dplyr::filter(
+    #       .data$id %in%
+    #         (dplyr::pull(fcst, .data$id) %>%
+    #           stringr::str_replace("_SOL", ""))
+    #     ) %>%
+    #     dplyr::mutate(id = stringr::str_c(.data$id, "_Q"))
+    # } else {
     stop("Historical data must be supplied when load_history is FALSE.")
   }
 
@@ -269,8 +271,10 @@ plot_qsol <- function(
   invisible(
     list(
       plots = plot_out,
+      plot_path = plot_loc,
       data = fcst_prev_hist,
-      plot_path = plot_loc
+      prev_fcst = prev_fcst,
+      history = history
     )
   )
 }
