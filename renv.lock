@@ -161,13 +161,13 @@
     "bimets": {
       "Package": "bimets",
       "Version": "4.0.4",
-      "Source": "Repository",
+      "Source": "GitHub",
       "Type": "Package",
       "Title": "Time Series and Econometric Modeling",
       "Date": "2025-05-21",
       "Authors@R": "c(person(\"Andrea\", \"Luciani\", email = \"andrea.luciani@bancaditalia.it\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-7372-358X\")), person(\"Roberto\", \"Stok\", email = \"roberto.stok@bancaditalia.it\", role = c(\"aut\")), person(\"Bank of Italy\",role = c(\"cph\")))",
       "Maintainer": "Andrea Luciani <andrea.luciani@bancaditalia.it>",
-      "Author": "Andrea Luciani [aut, cre] (ORCID: <https://orcid.org/0000-0002-7372-358X>), Roberto Stok [aut], Bank of Italy [cph]",
+      "Author": "Andrea Luciani [aut, cre] (<https://orcid.org/0000-0002-7372-358X>), Roberto Stok [aut], Bank of Italy [cph]",
       "ByteCompile": "no",
       "Description": "Time series analysis, (dis)aggregation and manipulation, e.g. time series extension, merge, projection, lag, lead, delta, moving and cumulative average and product, selection by index, date and year-period, conversion to daily, monthly, quarterly, (semi)annually. Simultaneous equation models definition, estimation, simulation and forecasting with coefficient restrictions, error autocorrelation, exogenization, add-factors, impact and interim multipliers analysis, conditional equation evaluation, rational expectations, endogenous targeting and model renormalization, structural stability, stochastic simulation and forecast, optimal control.",
       "Depends": [
@@ -184,7 +184,12 @@
       "BugReports": "https://github.com/andrea-luciani/bimets/issues",
       "URL": "https://github.com/andrea-luciani/bimets",
       "NeedsCompilation": "no",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "andrea-luciani",
+      "RemoteRepo": "bimets",
+      "RemoteRef": "master",
+      "RemoteSha": "423ecdc80476ee1f713b45d5bfdc68c6a705a82e"
     },
     "bit": {
       "Package": "bit",
