@@ -7,7 +7,7 @@ Description: Tools for UHERO forecast model data preparation, estimation,
   simulation, and visualization workflows.
 License: file LICENSE
 Depends: R (>= 4.1)
-Remotes: github::UHERO/fcutils
+Remotes: github::UHERO/fcutils, github::andrea-luciani/bimets
 Imports:
     bimets,
     fcutils,
