@@ -744,7 +744,7 @@
     },
     "fcutils": {
       "Package": "fcutils",
-      "Version": "0.0.0.9039",
+      "Version": "0.0.0.9040",
       "Source": "GitHub",
       "Title": "Time Series and Forecast Utilities",
       "Authors@R": "person(\"Peter\", \"Fuleky\", , \"fuleky@hawaii.edu\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"https://orcid.org/0000-0002-4094-2823\"))",
@@ -793,7 +793,7 @@
       "RemoteUsername": "UHERO",
       "RemoteRepo": "fcutils",
       "RemoteRef": "master",
-      "RemoteSha": "438a5ce1c9fb84feaecf07b68eb30b60da656ed8"
+      "RemoteSha": "565e4cdf54c7747ab94ecdadf727327fc9a31d32"
     },
     "filelock": {
       "Package": "filelock",
@@ -929,6 +929,37 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Max Kuhn [aut], Davis Vaughan [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
+      "Repository": "CRAN"
+    },
+    "gets": {
+      "Package": "gets",
+      "Version": "0.38",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "General-to-Specific (GETS) Modelling and Indicator Saturation Methods",
+      "Date": "2024-07-11",
+      "Author": "Genaro Sucarrat [aut, cre], Felix Pretis [aut], James Reade [aut], Jonas Kurle [ctb], Moritz Schwarz [ctb]",
+      "Maintainer": "Genaro Sucarrat <genaro.sucarrat@bi.no>",
+      "Description": "Automated General-to-Specific (GETS) modelling of the mean and variance of a regression, and indicator saturation methods for detecting and testing for structural breaks in the mean, see Pretis, Reade and Sucarrat (2018) <doi:10.18637/jss.v086.i03> for an overview of the package. In advanced use, the estimator and diagnostics tests can be fully user-specified, see Sucarrat (2021) <doi:10.32614/RJ-2021-024>.",
+      "License": "GPL (>= 2)",
+      "Depends": [
+        "R (>= 3.3.0)",
+        "zoo",
+        "parallel"
+      ],
+      "Imports": [
+        "methods"
+      ],
+      "Suggests": [
+        "lgarch",
+        "xtable",
+        "Matrix",
+        "testthat"
+      ],
+      "BugReports": "https://github.com/gsucarrat/gets/issues",
+      "URL": "https://CRAN.R-project.org/package=gets, http://www.sucarrat.net/R/gets/",
+      "Config/testthat/edition": "3",
+      "NeedsCompilation": "no",
       "Repository": "CRAN"
     },
     "glue": {
