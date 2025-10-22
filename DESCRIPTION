@@ -23,7 +23,10 @@ Imports:
     tsbox,
     xts,
     yaml,
-    lubridate
+    lubridate,
+    gets,
+    rlang,
+    zoo
 Suggests:
     testthat (>= 3.1.0),
     lintr,

@@ -13,6 +13,7 @@ renv::init()
 renv::install("usethis")
 
 usethis::use_pipe()
+usethis::use_import_from("gets", "getsm")
 
 renv::status()
 renv::snapshot()
