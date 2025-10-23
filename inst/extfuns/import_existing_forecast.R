@@ -178,7 +178,7 @@ import_existing_fcst <- function(
     stringr::str_subset("IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON", negate = TRUE)
 
   message(
-    "The model relies on the following exogenous series (excluding deterministic variables): ",
+    "The model relies on the following exogenous series (excluding deterministic variables): \n",
     stringr::str_flatten(exog_list, collapse = ", ")
   )
 
@@ -186,14 +186,14 @@ import_existing_fcst <- function(
   missing_in_model <- setdiff(exog_list, names(data_model_xts))
   if (length(missing_in_model) > 0) {
     warning(
-      "The following exogenous series are missing from history: ",
+      "The following exogenous series are missing from history: \n",
       stringr::str_flatten(missing_in_model, collapse = ", ")
     )
   }
   missing_in_fcst <- setdiff(exog_list, names(data_existing_fcst_xts))
   if (length(missing_in_fcst) > 0) {
-    stop(
-      "The following exogenous series are missing from existing forecast: ",
+    warning(
+      "The following exogenous series are missing from existing forecast: \n",
       stringr::str_flatten(missing_in_fcst, collapse = ", ")
     )
   }

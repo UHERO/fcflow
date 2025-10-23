@@ -78,26 +78,26 @@ solve_model <- function(
 
   if (is.null(add0_factors)) {
     message("Load 0 addfactors...")
-    addfactors0_xts <- readRDS(
+    add0_factors_xts <- readRDS(
       file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
     )
   } else {
-    addfactors0_xts <- add0_factors
+    add0_factors_xts <- add0_factors
   }
 
   message("Modify addfactors...")
   # set addfactors
   script_result_env <- run_script_with_args(
     path = here::here(addfac_script),
-    addfactors0_xts = addfactors0_xts
+    add0_factors_xts = add0_factors_xts
   )
 
   # retrieve the modified data from the script's environment
-  addfactors_xts <- script_result_env$addfactors_xts
+  add_factors_xts <- script_result_env$add_factors_xts
 
   message("Convert addfactors to bimets...")
   # BIMETS expects a list of individual time-series objects for constant adjustments
-  add_qmod.bimets <- addfactors_xts %>%
+  add_qmod.bimets <- add_factors_xts %>%
     tsbox::ts_tbl() %>%
     tsbox::ts_tslist() %>%
     purrr::map(bimets::as.bimets)
@@ -127,7 +127,7 @@ solve_model <- function(
   if (isTRUE(save_output)) {
     message("Save forecast data...")
     # keep both the add factors and the forecast so analysts can tweak and plot
-    addfactors_xts %>%
+    add_factors_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
       readr::write_csv(
@@ -162,7 +162,7 @@ solve_model <- function(
     list(
       simulation = simulated_model,
       forecast = fcst_xts,
-      add_factors = addfactors_xts,
+      add_factors = add_factors_xts,
       exog_range = exog_range
     )
   )

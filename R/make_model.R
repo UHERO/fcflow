@@ -84,7 +84,7 @@ make_model <- function(
 
   message("Initialize addfactors...")
   # add factors start at zero so analysts can later hand-edit the CSV or R file
-  addfactors0_xts <- data_model_xts %>%
+  add0_factors_xts <- data_model_xts %>%
     tsbox::ts_pick(model_equations$vendog) %>%
     tsbox::ts_tbl() %>%
     dplyr::mutate(value = 0) %>%
@@ -134,24 +134,21 @@ make_model <- function(
         equations_dir,
         estimated_equations_file
       ))
-      on.exit(sink(), add = TRUE)
       cat("\n", "ESTIMATION RESULTS", "\n", sep = "")
-    }
 
-    message("Estimate qmod equations...")
-    estimated_equations <- bimets::ESTIMATE(
-      model_equations_with_data,
-      eqList = model_equations_with_data$vendogBehaviorals,
-      TSRANGE = est_tsrange,
-      forceTSRANGE = force_est_tsrange,
-      quietly = FALSE
-    )
+      message("Estimate model equations...")
+      estimated_equations <- bimets::ESTIMATE(
+        model_equations_with_data,
+        eqList = model_equations_with_data$vendogBehaviorals,
+        TSRANGE = est_tsrange,
+        forceTSRANGE = force_est_tsrange,
+        quietly = FALSE
+      )
 
-    if (isTRUE(save_eq)) {
       message("Add identities to sink...")
-      cat("\n", "ESTIMATION RESULTS - IDENTITIES", "\n", sep = "")
+      cat("\n", "IDENTITIES", "\n", sep = "")
       for (i in seq_along(estimated_equations$identities)) {
-        cat("\n", "Identity ", i, "\n", sep = "")
+        # cat("\n", "Identity ", i, "\n", sep = "")
         cat(estimated_equations$identities[[i]]$eqFull, "\n")
       }
     }
@@ -175,7 +172,7 @@ make_model <- function(
     message("Save model data...")
     # save add factors, ragged-edge metadata, and the (possibly re-estimated) BIMETS object
     saveRDS(
-      addfactors0_xts,
+      add0_factors_xts,
       file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
     )
 
@@ -199,7 +196,7 @@ make_model <- function(
   invisible(
     list(
       estimated_equations = estimated_equations,
-      add0_factors = addfactors0_xts,
+      add0_factors = add0_factors_xts,
       exog_range = exog_range,
       data_model = data_model_xts
     )

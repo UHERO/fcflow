@@ -21,8 +21,6 @@ make_data_model <- function(
 ) {
   update_data_main <- require_cfg(cfg, c("data_model", "update_data_main"))
   update_equations <- require_cfg(cfg, c("data_model", "update_equations"))
-  # extension_start <- require_cfg(cfg, c("solve_model", "simulation_start"))
-  # extension_end <- require_cfg(cfg, c("solve_model", "simulation_end"))
   equations_file <- require_cfg(cfg, c("combine_equations", "equations_file"))
   data_main_file <- require_cfg(cfg, c("data_main", "data_main_file"))
   data_model_file <- require_cfg(cfg, c("data_model", "data_model_file"))
@@ -32,17 +30,6 @@ make_data_model <- function(
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   equations_dir <- require_cfg(cfg, c("paths", "equations"))
   impexf_script <- require_cfg(cfg, c("paths", "impexf_script"))
-
-  # # parse the extension start and end dates
-  # extension_start <- lubridate::parse_date_time(
-  #   extension_start,
-  #   c("yq", "ymd")
-  # ) %>%
-  #   lubridate::as_date()
-  # extension_end <- lubridate::parse_date_time(extension_end, c("yq", "ymd")) %>%
-  #   lubridate::as_date()
-
-  # ext_tsrange <- fcutils::p(extension_start, extension_end)
 
   if (is.null(model_equations)) {
     message("Load equations...")

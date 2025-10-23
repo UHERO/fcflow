@@ -15,7 +15,7 @@
 #'
 #' @return Invisibly returns the extended xts.
 #' @export
-data_gets <- function(
+make_data_gets <- function(
   cfg = load_forecast_cfg(),
   data_main = NULL,
   existing_forecast = NULL
@@ -135,7 +135,7 @@ data_gets <- function(
 }
 
 if (identical(environment(), globalenv())) {
-  data_gets()
+  make_data_gets()
 }
 
 # **************************

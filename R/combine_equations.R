@@ -39,8 +39,8 @@ combine_equations <- function(cfg = load_forecast_cfg()) {
     cfg,
     c("combine_equations", "equations_subset")
   )
+  equations_file <- require_cfg(cfg, c("combine_equations", "equations_file"))
   save_output <- require_cfg(cfg, c("combine_equations", "save_output"))
-  equations_file <- require_cfg(cfg, c("data_main", "equations_file"))
 
   # list all variable specific files in the equations directory
   list_of_files <- fs::dir_ls(path = here::here(equations_dir)) %>%
@@ -87,7 +87,11 @@ combine_equations <- function(cfg = load_forecast_cfg()) {
     )
   }
 
-  invisible(model_equations)
+  invisible(
+    list(
+      model_equations = model_equations
+    )
+  )
 }
 
 if (identical(environment(), globalenv())) {

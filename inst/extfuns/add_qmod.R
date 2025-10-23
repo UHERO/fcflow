@@ -4,19 +4,19 @@
 
 #' Set addfactors
 #'
-#' @param addfactors0_xts xts object produced by [make_model()] containing
+#' @param add0_factors_xts xts object produced by [make_model()] containing
 #' addfactors initialized to 0.
 #'
 #' @return Modified xts object with addfactors.
 #' @keywords internal
-add_qmod <- function(addfactors0_xts) {
-  stopifnot(!missing(addfactors0_xts))
+add_qmod <- function(add0_factors_xts) {
+  stopifnot(!missing(add0_factors_xts))
 
-  addfactors_xts <- addfactors0_xts
+  add_factors_xts <- add0_factors_xts
 
   # set addfactors here
 
-  addfactors_xts
+  add_factors_xts
 }
 
-addfactors_xts <- add_qmod(addfactors0_xts)
+add_factors_xts <- add_qmod(add0_factors_xts)

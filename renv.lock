@@ -749,7 +749,7 @@
     },
     "fcutils": {
       "Package": "fcutils",
-      "Version": "0.0.0.9040",
+      "Version": "0.0.0.9041",
       "Source": "GitHub",
       "Title": "Time Series and Forecast Utilities",
       "Authors@R": "person(\"Peter\", \"Fuleky\", , \"fuleky@hawaii.edu\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"https://orcid.org/0000-0002-4094-2823\"))",
@@ -798,7 +798,7 @@
       "RemoteUsername": "UHERO",
       "RemoteRepo": "fcutils",
       "RemoteRef": "master",
-      "RemoteSha": "565e4cdf54c7747ab94ecdadf727327fc9a31d32"
+      "RemoteSha": "e2699f273b6fb2c37ab37c04b45c831cabc00b01"
     },
     "filelock": {
       "Package": "filelock",
