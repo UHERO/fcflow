@@ -21,8 +21,8 @@ make_data_model <- function(
 ) {
   update_data_main <- require_cfg(cfg, c("data_model", "update_data_main"))
   update_equations <- require_cfg(cfg, c("data_model", "update_equations"))
-  extension_start <- require_cfg(cfg, c("solve_model", "simulation_start"))
-  extension_end <- require_cfg(cfg, c("solve_model", "simulation_end"))
+  # extension_start <- require_cfg(cfg, c("solve_model", "simulation_start"))
+  # extension_end <- require_cfg(cfg, c("solve_model", "simulation_end"))
   equations_file <- require_cfg(cfg, c("combine_equations", "equations_file"))
   data_main_file <- require_cfg(cfg, c("data_main", "data_main_file"))
   data_model_file <- require_cfg(cfg, c("data_model", "data_model_file"))
@@ -33,16 +33,16 @@ make_data_model <- function(
   equations_dir <- require_cfg(cfg, c("paths", "equations"))
   impexf_script <- require_cfg(cfg, c("paths", "impexf_script"))
 
-  # parse the extension start and end dates
-  extension_start <- lubridate::parse_date_time(
-    extension_start,
-    c("yq", "ymd")
-  ) %>%
-    lubridate::as_date()
-  extension_end <- lubridate::parse_date_time(extension_end, c("yq", "ymd")) %>%
-    lubridate::as_date()
+  # # parse the extension start and end dates
+  # extension_start <- lubridate::parse_date_time(
+  #   extension_start,
+  #   c("yq", "ymd")
+  # ) %>%
+  #   lubridate::as_date()
+  # extension_end <- lubridate::parse_date_time(extension_end, c("yq", "ymd")) %>%
+  #   lubridate::as_date()
 
-  ext_tsrange <- fcutils::p(extension_start, extension_end)
+  # ext_tsrange <- fcutils::p(extension_start, extension_end)
 
   if (is.null(model_equations)) {
     message("Load equations...")
@@ -80,7 +80,9 @@ make_data_model <- function(
   data_model_xts <- data_main_xts %>%
     tsbox::ts_pick(varlist_model)
 
-  message("Load existing forecast to obtain exogenous drivers...")
+  message(
+    "Load existing forecast and update model data with exogenous drivers..."
+  )
   script_result_env <- run_script_with_args(
     path = here::here(impexf_script),
     dat_raw_dir = dat_raw_dir,
@@ -90,15 +92,7 @@ make_data_model <- function(
     save_output = save_output
   )
   # retrieve the modified data from the script's environment
-  data_model_ext_xts <- script_result_env$data_model_ext_xts
-  exog_list <- script_result_env$exog_list
-
-  message("Update model data with exogenous drivers...")
-  # copy the pseudo-exogenous paths into the main data set over the simulation range
-  data_model_xts[ext_tsrange, exog_list] <- data_model_ext_xts[
-    ext_tsrange,
-    exog_list
-  ]
+  data_model_xts <- script_result_env$data_model_xts
 
   if (isTRUE(save_output)) {
     message("Save model data...")

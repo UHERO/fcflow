@@ -13,8 +13,9 @@
 #' @param data_model_xts xts object of the filtered model dataset.
 #' @param save_output logical indicating if data should be saved.
 #'
-#' @return Data with extended pseudoegonenous variables `data_model_ext_xts`.
-#'   The function also saves a csv with the full forecast that was imported.
+#' @return Data with extended pseudo-exogenous variables `data_model_ext_xts`.
+#'   The function also saves `data_existing_fcst_full.csv` and `.RDS` with the
+#'   full forecast that was imported from dat_prcsd_dir.
 #' @keywords internal
 import_existing_fcst <- function(
   dat_raw_dir,
@@ -241,10 +242,11 @@ import_existing_fcst <- function(
       )
   }
 
-  data_model_ext_xts
+  data_model_xts <- data_model_ext_xts
+  data_model_xts
 }
 
-data_model_ext_xts <- import_existing_fcst(
+data_model_xts <- import_existing_fcst(
   dat_raw_dir,
   dat_prcsd_dir,
   model_equations,
