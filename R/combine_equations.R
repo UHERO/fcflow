@@ -34,19 +34,25 @@ read_eq <- function(eq_file) {
 #' @return Invisible BIMETS model object created from the combined equations
 #' @export
 combine_equations <- function(cfg = load_forecast_cfg()) {
-  curr_vint <- require_cfg(cfg, c("vintages", "curr"))
-  eq_subset <- require_cfg(cfg, c("combine_equations", "eq_subset"))
+  equations_dir <- require_cfg(cfg, c("paths", "equations"))
+  equations_subset <- require_cfg(
+    cfg,
+    c("combine_equations", "equations_subset")
+  )
   save_output <- require_cfg(cfg, c("combine_equations", "save_output"))
-  eqn_dir <- require_cfg(cfg, c("paths", "equations"))
+  equations_file <- require_cfg(cfg, c("data_main", "equations_file"))
 
   # list all variable specific files in the equations directory
-  list_of_files <- fs::dir_ls(path = here::here(eqn_dir)) %>%
+  list_of_files <- fs::dir_ls(path = here::here(equations_dir)) %>%
     stringr::str_subset("eq.txt")
 
   # filter the list of files to those matching the subset of variables names
-  if (!is.null(eq_subset) && length(eq_subset) > 0) {
+  if (!is.null(equations_subset) && length(equations_subset) > 0) {
     list_of_files <- list_of_files %>%
-      stringr::str_subset(stringr::str_flatten(eq_subset, collapse = "|"))
+      stringr::str_subset(stringr::str_flatten(
+        equations_subset,
+        collapse = "|"
+      ))
   }
 
   # combine the snippets into one cohesive BIMETS model definition
@@ -61,30 +67,27 @@ combine_equations <- function(cfg = load_forecast_cfg()) {
   if (isTRUE(save_output)) {
     readr::write_lines(
       all_eqs %>% dplyr::pull(.data$value),
-      here::here(eqn_dir, stringr::str_glue("equations_qmod_{curr_vint}.txt"))
+      here::here(equations_dir, equations_file)
     )
   }
 
   # load the combined text file into a BIMETS model object the rest of the workflow can use
-  equations_qmod <- bimets::LOAD_MODEL(
-    modelFile = here::here(
-      eqn_dir,
-      stringr::str_glue("equations_qmod_{curr_vint}.txt")
-    )
+  model_equations <- bimets::LOAD_MODEL(
+    modelFile = here::here(equations_dir, equations_file)
   )
 
   # save the BIMETS object so estimation/solving can reuse it without re-parsing text
   if (isTRUE(save_output)) {
     saveRDS(
-      equations_qmod,
+      model_equations,
       file = here::here(
-        eqn_dir,
-        stringr::str_glue("equations_qmod_{curr_vint}.RDS")
+        equations_dir,
+        equations_file %>% stringr::str_replace(".txt$", ".RDS")
       )
     )
   }
 
-  invisible(equations_qmod)
+  invisible(model_equations)
 }
 
 if (identical(environment(), globalenv())) {

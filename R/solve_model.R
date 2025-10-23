@@ -8,93 +8,103 @@
 #' returning the full forecast trajectory alongside metadata.
 #'
 #' @param cfg Configuration list from [load_forecast_cfg()].
-#' @param est_equations Optional BIMETS model object with data attached.
+#' @param estimated_equations Optional BIMETS model object with data attached.
 #' @param exog_range Optional ragged-edge metadata list.
 #' @param add0_factors Optional xts object of add factors set to 0.
 #'
 #' @return Invisible list containing the BIMETS simulation object, forecast,
 #'   add factors, and exogenous range used.
 #' @export
-sol_qmod <- function(
+solve_model <- function(
   cfg = load_forecast_cfg(),
-  est_equations = NULL,
+  estimated_equations = NULL,
   exog_range = NULL,
   add0_factors = NULL
 ) {
-  curr_vint <- require_cfg(cfg, c("vintages", "curr"))
-  sim_start <- require_cfg(cfg, c("sol_qmod", "sim_start"))
-  sim_end <- require_cfg(cfg, c("sol_qmod", "sim_end"))
-  sim_iter_limit <- require_cfg(cfg, c("sol_qmod", "sim_iter_limit"))
-  sim_convergence <- require_cfg(cfg, c("sol_qmod", "sim_convergence"))
-  save_output <- require_cfg(cfg, c("sol_qmod", "save_output"))
+  estimated_equations_file <- require_cfg(
+    cfg,
+    c("make_model", "estimated_equations_file")
+  )
+  simulation_start <- require_cfg(cfg, c("solve_model", "simulation_start"))
+  simulation_end <- require_cfg(cfg, c("solve_model", "simulation_end"))
+  sim_iter_limit <- require_cfg(cfg, c("solve_model", "sim_iter_limit"))
+  sim_convergence <- require_cfg(cfg, c("solve_model", "sim_convergence"))
+  forecast_file <- require_cfg(cfg, c("solve_model", "forecast_file"))
+  save_output <- require_cfg(cfg, c("solve_model", "save_output"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
-  eqn_dir <- require_cfg(cfg, c("paths", "equations"))
+  equations_dir <- require_cfg(cfg, c("paths", "equations"))
   addfac_script <- require_cfg(cfg, c("paths", "addfac_script"))
 
-  sim_start <- lubridate::parse_date_time(sim_start, c("yq", "ymd")) %>%
+  simulation_start <- lubridate::parse_date_time(
+    simulation_start,
+    c("yq", "ymd")
+  ) %>%
     lubridate::as_date()
-  sim_end <- lubridate::parse_date_time(sim_end, c("yq", "ymd")) %>%
+  simulation_end <- lubridate::parse_date_time(
+    simulation_end,
+    c("yq", "ymd")
+  ) %>%
     lubridate::as_date()
 
   message("Get tsrange for simulation...")
   sim_tsrange <- c(
-    lubridate::year(sim_start),
-    lubridate::quarter(sim_start),
-    lubridate::year(sim_end),
-    lubridate::quarter(sim_end)
+    lubridate::year(simulation_start),
+    lubridate::quarter(simulation_start),
+    lubridate::year(simulation_end),
+    lubridate::quarter(simulation_end)
   )
 
-  if (is.null(est_equations)) {
+  if (is.null(estimated_equations)) {
     message("Load estimated equations...")
-    est_equations_qmod <- readRDS(
+    estimated_equations <- readRDS(
       file = here::here(
-        eqn_dir,
-        stringr::str_glue("est_equations_qmod_{curr_vint}.RDS")
+        equations_dir,
+        estimated_equations_file %>% stringr::str_replace(".txt$", ".RDS")
       )
     )
   } else {
-    est_equations_qmod <- est_equations
+    estimated_equations <- estimated_equations
   }
 
   if (is.null(exog_range)) {
     message("Load ragged edge...")
     exog_range <- readRDS(
       file = here::here(
-        eqn_dir,
-        stringr::str_glue("exog_range_{curr_vint}.RDS")
+        equations_dir,
+        stringr::str_glue("exog_range.RDS")
       )
     )
   }
 
   if (is.null(add0_factors)) {
     message("Load 0 addfactors...")
-    add0_qmod_xts <- readRDS(
+    addfactors0_xts <- readRDS(
       file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
     )
   } else {
-    add0_qmod_xts <- add0_factors
+    addfactors0_xts <- add0_factors
   }
 
   message("Modify addfactors...")
   # set addfactors
   script_result_env <- run_script_with_args(
     path = here::here(addfac_script),
-    add0_qmod_xts = add0_qmod_xts
+    addfactors0_xts = addfactors0_xts
   )
 
   # retrieve the modified data from the script's environment
-  add_qmod_xts <- script_result_env$add_qmod_xts
+  addfactors_xts <- script_result_env$addfactors_xts
 
   message("Convert addfactors to bimets...")
   # BIMETS expects a list of individual time-series objects for constant adjustments
-  add_qmod.bimets <- add_qmod_xts %>%
+  add_qmod.bimets <- addfactors_xts %>%
     tsbox::ts_tbl() %>%
     tsbox::ts_tslist() %>%
     purrr::map(bimets::as.bimets)
 
   message("Solve model...")
-  sim_qmod <- bimets::SIMULATE(
-    est_equations_qmod,
+  simulated_model <- bimets::SIMULATE(
+    estimated_equations,
     simType = "FORECAST",
     TSRANGE = sim_tsrange,
     ConstantAdjustment = add_qmod.bimets,
@@ -106,7 +116,10 @@ sol_qmod <- function(
 
   message("Extract forecast...")
   # extract just the endogenous forecast paths and convert back to xts for downstream steps
-  fcst_xts <- sim_qmod$simulation[sim_qmod$vendog, drop = FALSE] %>%
+  fcst_xts <- simulated_model$simulation[
+    simulated_model$vendog,
+    drop = FALSE
+  ] %>%
     fcutils::set_attr_tslist() %>%
     tsbox::ts_tbl() %>%
     tsbox::ts_xts()
@@ -114,21 +127,15 @@ sol_qmod <- function(
   if (isTRUE(save_output)) {
     message("Save forecast data...")
     # keep both the add factors and the forecast so analysts can tweak and plot
-    saveRDS(
-      add_qmod_xts,
-      file = here::here(
-        dat_prcsd_dir,
-        stringr::str_glue("add_qmod_{curr_vint}.RDS")
-      )
-    )
-
-    add_qmod_xts %>%
+    addfactors_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
       readr::write_csv(
         file = here::here(
           dat_prcsd_dir,
-          stringr::str_glue("add_qmod_{curr_vint}.csv")
+          addfac_script %>%
+            basename() %>%
+            stringr::str_replace(".R$", ".csv")
         )
       )
 
@@ -136,7 +143,7 @@ sol_qmod <- function(
       fcst_xts,
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("fcst_{curr_vint}.RDS")
+        forecast_file %>% stringr::str_replace(".csv$", ".RDS")
       )
     )
 
@@ -146,23 +153,23 @@ sol_qmod <- function(
       readr::write_csv(
         file = here::here(
           dat_prcsd_dir,
-          stringr::str_glue("fcst_{curr_vint}.csv")
+          forecast_file
         )
       )
   }
 
   invisible(
     list(
-      simulation = sim_qmod,
+      simulation = simulated_model,
       forecast = fcst_xts,
-      add_factors = add_qmod_xts,
+      add_factors = addfactors_xts,
       exog_range = exog_range
     )
   )
 }
 
 if (identical(environment(), globalenv())) {
-  sol_qmod()
+  solve_model()
 }
 
 # **************************

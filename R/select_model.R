@@ -13,14 +13,14 @@
 #' plot compares new forecast with pseudo-forecast
 #'
 #' @param cfg Configuration list produced by [load_forecast_cfg()].
-#' @param mod_select_data Optional extended dataset from [make_data_gets()] (wide tibble,
+#' @param mod_select_data Optional extended dataset from [data_gets()] (wide tibble,
 #'   xts, or tsbox-compatible object). When `NULL`, the data are read from disk.
 #' @param indicators Optional indicator variables (xts). When `NULL`, the file
 #'   specified in the configuration is loaded.
 #'
 #' @return Invisibly returns a list containing fitted models, data, and plots.
 #' @export
-gets_model_select <- function(
+select_model <- function(
   cfg = load_forecast_cfg(),
   mod_select_data = NULL,
   indicators = NULL
@@ -49,9 +49,9 @@ gets_model_select <- function(
 
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   dat_raw_dir <- require_cfg(cfg, c("paths", "raw"))
-  eqn_dir <- require_cfg(cfg, c("paths", "equations"))
+  equations_dir <- require_cfg(cfg, c("paths", "equations"))
   out_fig_dir <- require_cfg(cfg, c("paths", "figures"))
-  indicators_file <- require_cfg(cfg, c("data_qmain", "indicators_file"))
+  indicators_file <- require_cfg(cfg, c("data_main", "indicators_file"))
 
   bank_start <- require_cfg(cfg, c("constants", "bank_start")) %>%
     fcutils::to_ymd()
@@ -59,68 +59,68 @@ gets_model_select <- function(
     fcutils::to_ymd()
 
   # candidate variables (logs: L_, diffs: D_, logdiffs: DL_, parsed by model_equation())
-  # derived variables (interactions, ratios, etc.) defined in make_data_gets.R
-  yvar_name <- require_cfg(cfg, c("gets_model_select", "yvar"))
-  xvar_list <- magrittr::extract2(cfg, c("gets_model_select", "xvars"))
+  # derived variables (interactions, ratios, etc.) defined in data_gets.R
+  yvar_name <- require_cfg(cfg, c("select_model", "yvar"))
+  xvar_list <- magrittr::extract2(cfg, c("select_model", "xvars"))
 
   # deterministic variables (e.g., constant, time trend, seasonal dummies)
-  ivar_list <- magrittr::extract2(cfg, c("gets_model_select", "deterministic"))
+  ivar_list <- magrittr::extract2(cfg, c("select_model", "deterministic"))
 
   mod_list <- c(yvar_name, xvar_list)
 
   # variables to keep in final model
-  keep_vars <- magrittr::extract2(cfg, c("gets_model_select", "keep_vars"))
+  keep_vars <- magrittr::extract2(cfg, c("select_model", "keep_vars"))
 
-  max_lag <- as.integer(require_cfg(cfg, c("gets_model_select", "max_lag")))
-  second_pass <- isTRUE(require_cfg(cfg, c("gets_model_select", "second_pass")))
-  save_eq <- isTRUE(require_cfg(cfg, c("gets_model_select", "save_equation")))
+  max_lag <- as.integer(require_cfg(cfg, c("select_model", "max_lag")))
+  second_pass <- isTRUE(require_cfg(cfg, c("select_model", "second_pass")))
+  save_eq <- isTRUE(require_cfg(cfg, c("select_model", "save_equation")))
 
   mselect_start <- require_cfg(
     cfg,
-    c("gets_model_select", "mselect_range", "start")
+    c("select_model", "mselect_range", "start")
   ) %>%
     fcutils::to_ymd()
   mselect_end <- require_cfg(
     cfg,
-    c("gets_model_select", "mselect_range", "end")
+    c("select_model", "mselect_range", "end")
   ) %>%
     fcutils::to_ymd()
 
-  est_start <- require_cfg(
+  estimation_start <- require_cfg(
     cfg,
-    c("gets_model_select", "estimation_range", "start")
+    c("select_model", "estimation_range", "start")
   ) %>%
     fcutils::to_ymd()
-  est_end <- require_cfg(
+  estimation_end <- require_cfg(
     cfg,
-    c("gets_model_select", "estimation_range", "end")
+    c("select_model", "estimation_range", "end")
   ) %>%
     fcutils::to_ymd()
 
   fcst_start <- require_cfg(
     cfg,
-    c("gets_model_select", "forecast_range", "start")
+    c("select_model", "forecast_range", "start")
   ) %>%
     fcutils::to_ymd()
   fcst_end <- require_cfg(
     cfg,
-    c("gets_model_select", "forecast_range", "end")
+    c("select_model", "forecast_range", "end")
   ) %>%
     fcutils::to_ymd()
 
   # diagnostic tests for serieal correlation and arch effects
   diag_cfg <- magrittr::extract2(
     cfg,
-    c("gets_model_select", "diagnostic_tests")
+    c("select_model", "diagnostic_tests")
   )
   ar.LjungB_test <- build_diag(diag_cfg$ar_ljung_box)
   arch.LjungB_test <- build_diag(diag_cfg$arch_ljung_box)
   t_pval <- require_cfg(
     cfg,
-    c("gets_model_select", "diagnostic_tests", "t_pval")
+    c("select_model", "diagnostic_tests", "t_pval")
   )
 
-  plot_cfg <- require_cfg(cfg, c("gets_model_select", "plot"))
+  plot_cfg <- require_cfg(cfg, c("select_model", "plot"))
   plot_filename <- plot_cfg$filename
   if (is.null(plot_filename) || !nzchar(plot_filename)) {
     plot_filename <- "plot_out.html"
@@ -134,7 +134,7 @@ gets_model_select <- function(
   mod_select_data_file <- require_cfg(
     cfg,
     c(
-      "make_data_gets",
+      "data_gets",
       "mod_select_data_file"
     )
   )
@@ -471,7 +471,7 @@ gets_model_select <- function(
 
   # find all variables with only zeros in the estimation period (if shorter than model selection period)
   zero_vars <- gets_data %>%
-    tsbox::ts_span(start = est_start, end = est_end) %>%
+    tsbox::ts_span(start = estimation_start, end = estimation_end) %>%
     tsbox::ts_tbl() %>%
     dplyr::mutate(value = abs(.data$value)) %>%
     dplyr::group_by(.data$id) %>%
@@ -481,7 +481,7 @@ gets_model_select <- function(
 
   # remove zero valued variables from the estimation sample
   est_data <- gets_data %>%
-    tsbox::ts_span(start = est_start, end = est_end) %>%
+    tsbox::ts_span(start = estimation_start, end = estimation_end) %>%
     tsbox::ts_tbl() %>%
     tsbox::ts_wide() %>%
     dplyr::select(-dplyr::all_of(zero_vars)) %>%
@@ -503,12 +503,12 @@ gets_model_select <- function(
 
   # save equations into text file? # save_eq == TRUE
   if (isTRUE(save_eq)) {
-    sink(here::here(eqn_dir, "model_eq.txt"))
+    sink(here::here(equations_dir, "model_eq.txt"))
     cat("\n", "MODEL", "\n", sep = "")
     sink()
 
     # save equation
-    sink(here::here(eqn_dir, "model_eq.txt"), append = TRUE)
+    sink(here::here(equations_dir, "model_eq.txt"), append = TRUE)
     cat(stringr::str_glue(
       "
 
@@ -517,7 +517,7 @@ gets_model_select <- function(
     sink()
 
     # end file with END
-    sink(here::here(eqn_dir, "model_eq.txt"), append = TRUE)
+    sink(here::here(equations_dir, "model_eq.txt"), append = TRUE)
     cat("\n\n", "END", "\n", sep = "")
     sink()
   }
@@ -528,7 +528,7 @@ gets_model_select <- function(
 
   # load model from stored txt file
   model_eq <- bimets::LOAD_MODEL(
-    modelFile = here::here(eqn_dir, "model_eq.txt")
+    modelFile = here::here(equations_dir, "model_eq.txt")
   )
 
   # store variables in bimets format (no ragged edge: drop_na)
@@ -552,19 +552,19 @@ gets_model_select <- function(
   # **************************
 
   # determine range of history for estimation (+2 to accommodate first differnces)
-  est_range <- model_eq_dat$modelData %>%
+  estimation_range <- model_eq_dat$modelData %>%
     magrittr::set_attr("class", c("tslist", "list")) %>%
     tsbox::ts_xts() %>%
     zoo::index() %>%
     magrittr::extract(c(max_lag + 2, length(.)))
 
   # limit estimation range?
-  if (est_range[1] < est_start) {
-    est_range[1] <- est_start
+  if (estimation_range[1] < estimation_start) {
+    estimation_range[1] <- estimation_start
   }
   # limit estimation range?
-  if (est_range[2] > est_end) {
-    est_range[2] <- est_end
+  if (estimation_range[2] > estimation_end) {
+    estimation_range[2] <- estimation_end
   }
 
   # determine last available date for Chow test and forecast
@@ -582,23 +582,23 @@ gets_model_select <- function(
 
   # save estimation results into text file? # save_eq == TRUE
   if (isTRUE(save_eq)) {
-    sink(here::here(eqn_dir, "model_est.txt"))
+    sink(here::here(equations_dir, "model_est.txt"))
     cat("\n", "ESTIMATION RESULTS", "\n", sep = "")
   }
 
   # estimate model
   if (
     lubridate::floor_date(fcst_end, "quarter") <=
-      lubridate::floor_date(est_range[2], "quarter")
+      lubridate::floor_date(estimation_range[2], "quarter")
   ) {
     model_est <- bimets::ESTIMATE(
       model_eq_dat,
       eqList = model_eq_dat$vendog,
       TSRANGE = c(
-        lubridate::year(est_range[1]),
-        lubridate::quarter(est_range[1]),
-        lubridate::year(est_range[2]),
-        lubridate::quarter(est_range[2])
+        lubridate::year(estimation_range[1]),
+        lubridate::quarter(estimation_range[1]),
+        lubridate::year(estimation_range[2]),
+        lubridate::quarter(estimation_range[2])
       ),
       quietly = FALSE
     )
@@ -607,10 +607,10 @@ gets_model_select <- function(
       model_eq_dat,
       eqList = model_eq_dat$vendog,
       TSRANGE = c(
-        lubridate::year(est_range[1]),
-        lubridate::quarter(est_range[1]),
-        lubridate::year(est_range[2]),
-        lubridate::quarter(est_range[2])
+        lubridate::year(estimation_range[1]),
+        lubridate::quarter(estimation_range[1]),
+        lubridate::year(estimation_range[2]),
+        lubridate::quarter(estimation_range[2])
       ),
       CHOWTEST = TRUE,
       CHOWPAR = c(
@@ -712,7 +712,7 @@ gets_model_select <- function(
 }
 
 if (identical(environment(), globalenv())) {
-  gets_model_select()
+  select_model()
 }
 
 # **************************

@@ -9,17 +9,17 @@
 #' series.
 #'
 #' @param cfg Configuration list from [load_forecast_cfg()].
-#' @param fcst Optional xts/tibble override for the current forecast.
-#' @param prev_fcst Optional override for the previous forecast data.
+#' @param forecast Optional xts/tibble override for the current forecast.
+#' @param comparison_forecast Optional override for the previous forecast data.
 #' @param history Optional override for historical data.
 #'
 #' @return Invisible list containing the plot objects, combined data, and
 #'   the file path of the rendered HTML report.
 #' @export
-plot_qsol <- function(
+plot_forecast <- function(
   cfg = load_forecast_cfg(),
-  fcst = NULL,
-  prev_fcst = NULL,
+  forecast = NULL,
+  comparison_forecast = NULL,
   history = NULL
 ) {
   curr_vint <- require_cfg(cfg, c("vintages", "curr"))
@@ -30,7 +30,7 @@ plot_qsol <- function(
   toursol_plot_list <- require_cfg(cfg, c("paths", "toursol_plot_list"))
   qsol_plot_list <- require_cfg(cfg, c("paths", "qsol_plot_list"))
 
-  plot_cfg <- require_cfg(cfg, c("plot_qsol"))
+  plot_cfg <- require_cfg(cfg, c("plot_forecast"))
   save_output <- require_cfg(plot_cfg, c("save_output"))
   preview_html <- require_cfg(plot_cfg, c("preview_html"))
   tourplot <- require_cfg(plot_cfg, c("tourplot"))
@@ -44,6 +44,12 @@ plot_qsol <- function(
   plot_width <- require_cfg(plot_cfg, c("plot_width"))
   plot_height <- require_cfg(plot_cfg, c("plot_height"))
   yoy_growth <- require_cfg(plot_cfg, c("yoy_growth"))
+  comparison_forecast_file <- require_cfg(
+    plot_cfg,
+    c("comparison_forecast_file")
+  )
+  forecast_file <- require_cfg(cfg, c("solve_model", "forecast_file"))
+  history_file <- require_cfg(cfg, c("data_model", "data_model_file"))
 
   short <- require_cfg(plot_cfg, c("short"))
 
@@ -104,43 +110,36 @@ plot_qsol <- function(
   # load the current-vintage forecast (or use the override passed into the function)
   if (isTRUE(load_curr_vint)) {
     message("Load current forecast...")
-    fcst <- readRDS(
+    forecast <- readRDS(
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("fcst_{curr_vint}.RDS")
+        forecast_file %>% stringr::str_replace(".csv$", ".RDS")
       )
     ) %>%
       tsbox::ts_tbl() %>%
       dplyr::mutate(id = stringr::str_c(.data$id, "_SOL"))
-  } else if (!is.null(fcst)) {
-    fcst <- fcst %>%
+  } else if (!is.null(forecast)) {
+    forecast <- forecast %>%
       tsbox::ts_tbl() %>%
       dplyr::mutate(id = stringr::str_c(.data$id, "_SOL"))
   } else {
     stop("Current forecast data must be supplied when load_curr_vint is FALSE.")
   }
 
-  # previous forecast gives the “old” path for comparison in the plots
+  # comparison forecast gives the “old” path in the plots
   if (isTRUE(load_prev_vint)) {
-    message("Load previous forecast...")
-    prev_fcst <- readRDS(
+    message("Load comparison forecast...")
+    comparison_forecast <- readRDS(
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("fcst_{prev_vint}.RDS")
+        comparison_forecast_file %>% stringr::str_replace(".csv$", ".RDS")
       )
     ) %>%
       tsbox::ts_tbl() %>%
       dplyr::mutate(
         id = stringr::str_glue("{id}_{prev_vint}") %>% as.character()
       )
-    # } else if (!is.null(prev_fcst)) {
-  } else if (is.null(prev_fcst)) {
-    #   prev_fcst <- prev_fcst %>%
-    #     tsbox::ts_tbl() %>%
-    #     dplyr::mutate(
-    #       id = stringr::str_glue("{id}_{prev_vint}") %>% as.character()
-    #     )
-    # } else {
+  } else if (is.null(comparison_forecast)) {
     stop(
       "Previous forecast data must be supplied when load_prev_vint is FALSE."
     )
@@ -152,33 +151,22 @@ plot_qsol <- function(
     history <- readRDS(
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("data_qmod_{curr_vint}.RDS")
+        history_file %>% stringr::str_replace(".csv$", ".RDS")
       )
     ) %>%
       tsbox::ts_tbl() %>%
       dplyr::filter(
         .data$id %in%
-          (dplyr::pull(fcst, .data$id) %>%
+          (dplyr::pull(forecast, .data$id) %>%
             stringr::str_replace("_SOL", ""))
       ) %>%
       dplyr::mutate(id = stringr::str_c(.data$id, "_Q"))
-    # } else if (!is.null(history)) {
   } else if (is.null(history)) {
-    #   history <- history %>%
-    #     tsbox::ts_tbl() %>%
-    #     dplyr::mutate(id = stringr::str_replace(.data$id, "_Q$", "")) %>%
-    #     dplyr::filter(
-    #       .data$id %in%
-    #         (dplyr::pull(fcst, .data$id) %>%
-    #           stringr::str_replace("_SOL", ""))
-    #     ) %>%
-    #     dplyr::mutate(id = stringr::str_c(.data$id, "_Q"))
-    # } else {
     stop("Historical data must be supplied when load_history is FALSE.")
   }
 
   # assemble current forecast, previous forecast, and history into one tidy object for plotting
-  fcst_prev_hist <- tsbox::ts_c(fcst, prev_fcst, history)
+  fcst_prev_hist <- tsbox::ts_c(forecast, comparison_forecast, history)
   plot_list <- unique(fcst_prev_hist$id) %>%
     tibble::as_tibble_col() %>%
     dplyr::mutate(
@@ -198,7 +186,7 @@ plot_qsol <- function(
       tsbox::ts_wide() %>%
       readr::write_csv(here::here(
         out_dir,
-        stringr::str_glue("fcst_prev_hist_{curr_vint}.csv")
+        stringr::str_glue("fcst_prev_hist.csv")
       ))
   }
 
@@ -273,14 +261,14 @@ plot_qsol <- function(
       plots = plot_out,
       plot_path = plot_loc,
       data = fcst_prev_hist,
-      prev_fcst = prev_fcst,
+      comparison_forecast = comparison_forecast,
       history = history
     )
   )
 }
 
 if (identical(environment(), globalenv())) {
-  plot_qsol()
+  plot_forecast()
 }
 
 # **************************

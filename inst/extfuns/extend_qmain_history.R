@@ -7,12 +7,12 @@
 #' Pulls 11Q4 AREMOS exports and splices longer histories onto the main
 #' dataset when requested.
 #'
-#' @param data_qmain_xts xts object containing the UDAMAN pull.
+#' @param data_main_xts xts object containing the UDAMAN pull.
 #' @param dat_raw_dir Base directory for raw data files.
 #'
 #' @return xts object, potentially extended with archived data.
 #' @keywords internal
-extend_qmain_history <- function(data_qmain_xts, dat_raw_dir) {
+extend_qmain_history <- function(data_main_xts, dat_raw_dir) {
   # load aremos data from the 11Q4 subfolder
   data_aremos_hist_xts <- c(
     "TOUR1",
@@ -54,9 +54,9 @@ extend_qmain_history <- function(data_qmain_xts, dat_raw_dir) {
     tsbox::ts_long() %>%
     tsbox::ts_xts()
 
-  # identify series in data_qmain_xts have a longer history in data_aremos_hist_xts
+  # identify series in data_main_xts have a longer history in data_aremos_hist_xts
   ser_ext <- dplyr::full_join(
-    tsbox::ts_summary(data_qmain_xts),
+    tsbox::ts_summary(data_main_xts),
     tsbox::ts_summary(data_aremos_hist_xts),
     by = "id"
   ) %>%
@@ -67,11 +67,11 @@ extend_qmain_history <- function(data_qmain_xts, dat_raw_dir) {
     stringr::str_flatten(ser_ext$id, collapse = ", ")
   )
 
-  # extend data_qmain_xts with the longer histories from aremos
-  data_qmain_xts <- data_qmain_xts %>%
+  # extend data_main_xts with the longer histories from aremos
+  data_main_xts <- data_main_xts %>%
     fcutils::multi_chain(data_aremos_hist_xts, ser_ext$id)
 
-  data_qmain_xts
+  data_main_xts
 }
 
-data_qmain_xts <- extend_qmain_history(data_qmain_xts, dat_raw_dir)
+data_main_xts <- extend_qmain_history(data_main_xts, dat_raw_dir)

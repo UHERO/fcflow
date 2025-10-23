@@ -1,5 +1,5 @@
 # *************************
-# Download and create quarterly data for qmod estimation/development
+# Download and create quarterly data for model estimation/development
 # *************************
 
 #' Build Master Quarterly Dataset
@@ -13,13 +13,14 @@
 #'
 #' @return Invisible xts object containing the master quarterly dataset.
 #' @export
-make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
-  curr_vint <- require_cfg(cfg, c("vintages", "curr"))
-  data_from_disk <- require_cfg(cfg, c("data_qmain", "data_from_disk"))
-  exp_id_q <- require_cfg(cfg, c("data_qmain", "exp_id_q"))
-  extend_history <- require_cfg(cfg, c("data_qmain", "extend_history"))
-  indicators_file <- require_cfg(cfg, c("data_qmain", "indicators_file"))
-  save_output <- require_cfg(cfg, c("data_qmain", "save_output"))
+make_data_main <- function(cfg = load_forecast_cfg(), indicators = NULL) {
+  data_from_disk <- require_cfg(cfg, c("data_main", "data_from_disk"))
+  udaman_export_id <- require_cfg(cfg, c("data_main", "udaman_export_id"))
+  udaman_export_file <- require_cfg(cfg, c("data_main", "udaman_export_file"))
+  extend_history <- require_cfg(cfg, c("data_main", "extend_history"))
+  indicators_file <- require_cfg(cfg, c("data_main", "indicators_file"))
+  data_main_file <- require_cfg(cfg, c("data_main", "data_main_file"))
+  save_output <- require_cfg(cfg, c("data_main", "save_output"))
 
   dat_raw_dir <- require_cfg(cfg, c("paths", "raw"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
@@ -53,20 +54,23 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   # then combine with indicators and convert to xts
   if (isTRUE(data_from_disk)) {
     message("Load main data from disk...")
-    data_qmain_xts <- readr::read_csv(here::here(
+    data_main_xts <- readr::read_csv(here::here(
       dat_raw_dir,
-      stringr::str_glue("{exp_id_q}.csv")
+      udaman_export_file
     )) %>%
       tsbox::ts_long() %>%
       tsbox::ts_xts() %>%
       tsbox::ts_c(ind_vars_xts)
   } else {
     message("Load main data from udaman...")
-    data_qmain_xts <- fcutils::get_series_exp(
-      exp_id_q,
+    data_main_xts <- fcutils::get_series_exp(
+      udaman_export_id,
       format = "xts",
       raw = TRUE,
-      save_loc = here::here(dat_raw_dir, stringr::str_glue("{exp_id_q}.csv"))
+      save_loc = here::here(
+        dat_raw_dir,
+        udaman_export_file
+      )
     ) %>%
       tsbox::ts_c(ind_vars_xts)
   }
@@ -77,56 +81,59 @@ make_data_qmain <- function(cfg = load_forecast_cfg(), indicators = NULL) {
     message("Extend history...")
     script_result_env <- run_script_with_args(
       path = here::here(extend_script),
-      data_qmain_xts = data_qmain_xts,
+      data_main_xts = data_main_xts,
       dat_raw_dir = dat_raw_dir
     )
     # retrieve the modified data from the script's environment
-    data_qmain_xts <- script_result_env$data_qmain_xts
+    data_main_xts <- script_result_env$data_main_xts
   }
 
   # restrict data to the bank sample period
-  data_qmain_xts <- data_qmain_xts[smpl_bnk]
+  data_main_xts <- data_main_xts[smpl_bnk]
 
   message("Ad-hoc data adjustments...")
   # apply any final wrangling steps (e.g., create derived series, clean anomalies)
   script_result_env <- run_script_with_args(
     path = here::here(wrangl_script),
-    data_qmain_xts = data_qmain_xts
+    data_main_xts = data_main_xts
   )
-
   # retrieve the modified data from the script's environment
-  data_qmain_xts <- script_result_env$data_qmain_xts
+  data_main_xts <- script_result_env$data_main_xts
 
   # ensure we are handing back an xts object
-  stopifnot(xts::is.xts(data_qmain_xts))
+  stopifnot(xts::is.xts(data_main_xts))
 
   # save both an RDS (for code) and a CSV (for analysts) of the finished dataset
   if (isTRUE(save_output)) {
     message("Save main data...")
     saveRDS(
-      data_qmain_xts,
+      data_main_xts,
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("data_qmain_{curr_vint}.RDS")
+        data_main_file %>% stringr::str_replace(".csv$", ".RDS")
       )
     )
 
-    data_qmain_xts %>%
+    data_main_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
       readr::write_csv(
         file = here::here(
           dat_prcsd_dir,
-          stringr::str_glue("data_qmain_{curr_vint}.csv")
+          data_main_file
         )
       )
   }
 
-  invisible(data_qmain_xts)
+  invisible(
+    list(
+      data_main = data_main_xts
+    )
+  )
 }
 
 if (identical(environment(), globalenv())) {
-  make_data_qmain()
+  make_data_main()
 }
 
 # **************************

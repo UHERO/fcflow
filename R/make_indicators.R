@@ -15,8 +15,8 @@ make_indicators <- function(cfg = load_forecast_cfg()) {
   bank_start_raw <- require_cfg(cfg, c("constants", "bank_start"))
   bank_end_raw <- require_cfg(cfg, c("constants", "bank_end"))
   dat_raw_dir <- require_cfg(cfg, c("paths", "raw"))
-  indicators_file <- require_cfg(cfg, c("data_qmain", "indicators_file"))
-  data_from_disk <- require_cfg(cfg, c("data_qmain", "data_from_disk"))
+  indicators_file <- require_cfg(cfg, c("data_main", "indicators_file"))
+  data_from_disk <- require_cfg(cfg, c("data_main", "data_from_disk"))
 
   # read from disk if the indicator and main data file already exists
   if (isTRUE(data_from_disk)) {
@@ -72,7 +72,7 @@ make_indicators <- function(cfg = load_forecast_cfg()) {
     xts::xts(order.by = time_index)
 
   # combine all indicators into one xts object
-  indicator_vars <- cbind(
+  indicator_vars <- tsbox::ts_c(
     iis_indicators,
     sis_indicators,
     season_indicators,

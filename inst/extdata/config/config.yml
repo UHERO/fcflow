@@ -1,34 +1,35 @@
 vintages:
-  prev: "25Q1"
-  curr: "25Q2"
+  prev: 25Q1
+  curr: dev
 
 paths:
-  raw: "data/raw"
-  processed: "data/processed"
-  equations: "equations"
-  extend_script: "R/extend_qmain_history.R"
-  wrangl_script: "R/wrangle_data.R"
-  impext_script: "R/import_existing_fcst.R"
-  # addfac_script: "R/add_qmod_25Q4.txt"
-  addfac_script: "R/add_qmod.R" # blank add-factor file
-  output: "output"
-  figures: "output/figures"
-  toursol_plot_list: "R/toursol_plot_list.R"
-  qsol_plot_list: "R/qsol_plot_list.R"
+  raw: data/raw
+  processed: data/processed
+  equations: equations
+  output: output
+  figures: output/figures
+  extend_script: R/extend_main_history.R
+  wrangl_script: R/wrangle_data.R
+  impexf_script: R/import_existing_forecast.R
+  addfac_script: R/add_qmod.R
+  toursol_plot_list: R/toursol_plot_list.R
+  qsol_plot_list: R/qsol_plot_list.R
 
 constants:
   bank_start: 1970.1
-  bank_end: 2100.4
+  bank_end: 2065.4
 
-data_qmain:
+data_main:
   data_from_disk: true
-  exp_id_q: 333
+  udaman_export_id: 333
+  udaman_export_file: 333.csv
   extend_history: false
   indicators_file: indicators.RDS
+  data_main_file: data_main.csv
   save_output: true
 
 combine_equations:
-  eq_subset:
+  equations_subset:
     - _eq.txt # this keeps all equations (or comment this and uncomment below)
     # - af                    
     # - ag                    
@@ -68,34 +69,36 @@ combine_equations:
     # - y_headline_identitites
     # - ymedc_hon   
     # - qmod # this is the translated AREMOS model
+  equations_file: model_equations.txt
   save_output: true
 
-make_data_qmod:
-  update_qmain: false
+data_model:
+  update_data_main: false
   update_equations: false
-  ext_start: 2010.1
-  ext_end: 2050.4
+  data_model_file: data_model.csv
   save_output: true
 
-make_qmod:
+make_model:
   reestimate: true
   save_eq: true
   discover_tsrange: false
   max_lag: 5
   force_tsrange: false
-  est_start: 1990.1
-  est_end: 2019.4
+  estimation_start: 1990.1
+  estimation_end: 2019.4
+  estimated_equations_file: estimated_model_equations.txt
   save_output: true
 
-sol_qmod:
-  sim_start: 2020.1
-  sim_end: 2029.1
+solve_model:
+  simulation_start: 2020.1
+  simulation_end: 2029.1
   sim_iter_limit: 100
   sim_convergence: 0.00001
+  forecast_file: forecast.csv
   save_output: true
 
-plot_qsol:
-  short: false
+plot_forecast:
+  short: true
   annual: false
   tourplot: true
   jobonly: false
@@ -106,10 +109,10 @@ plot_qsol:
   load_history: true
   ranges:
     short:
-      plot_start: 2019.1
-      plot_end: 2033.4
+      plot_start: 2019.4
+      plot_end: 2030.4
       show_table: true
-      tab_start: 2024.1
+      tab_start: 2025.1
       tab_end: 2029.4
     long:
       plot_start: 1990.1
@@ -120,5 +123,53 @@ plot_qsol:
   plot_width: 1500
   plot_height: 650
   yoy_growth: true
+  comparison_forecast_file: data_existing_fcst_all.csv
   save_output: true
   preview_html: true
+
+data_gets:
+  history_file: data_main_dev.csv
+  existing_fcst_file: data_existing_fcst_all.csv
+  mod_select_data_file: data_main_ext.csv
+  save_output: true
+
+select_model:
+  yvar: L_TRMS_HON
+  xvars:
+    - OCUPP_HON
+  deterministic:
+    - IQ2
+    - IQ3
+    - IQ4
+    - CONST
+  keep_vars: # eg force to keep constant or certain lags if levels are I(1)
+    # - CONST
+    - L_TRMS_HON
+    - OCUPP_HON
+    - L_TRMS_HON.1
+    - OCUPP_HON.1
+  max_lag: 4
+  second_pass: true
+  save_equation: true
+  mselect_range:
+    start: 1970.1
+    end: 2018.4
+  estimation_range:
+    start: 1970.1
+    end: 2018.4
+  forecast_range:
+    start: 2024.1
+    end: 2045.4
+  # see ?gets::getsm() for details
+  diagnostic_tests:
+    ar_ljung_box:
+      lag: null
+      pval: 0.025
+    arch_ljung_box:
+      lag: null
+      pval: null
+    t_pval: 0.05
+  plot:
+    filename: plot_out.html
+    window_years: 15
+    preview_html: true

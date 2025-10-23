@@ -5,12 +5,12 @@
 #' Import Existing Forecast
 #'
 #' Loads quarterly and annual existing forecasts,
-#' and constructs quarterly pseudo-exogenous series required by QMOD.
+#' and constructs quarterly pseudo-exogenous series required by the model.
 #'
 #' @param dat_raw_dir Directory for raw existing forecasts
 #' @param dat_prcsd_dir Directory for processed existing forecasts
-#' @param equations_qmod BIMETS equation bundle (used for the exogenous list).
-#' @param data_qmod_xts xts object of the filtered QMOD dataset.
+#' @param model_equations BIMETS equation bundle (used for the exogenous list).
+#' @param data_model_xts xts object of the filtered model dataset.
 #' @param save_output logical indicating if data should be saved.
 #'
 #' @return List with `data_existing_fcst` (xts) and `exog_list` (character vector).
@@ -18,8 +18,8 @@
 import_existing_fcst <- function(
   dat_raw_dir,
   dat_prcsd_dir,
-  equations_qmod,
-  data_qmod_xts,
+  model_equations,
+  data_model_xts,
   save_output
 ) {
   # load quarterly existing forecasts
@@ -134,18 +134,20 @@ import_existing_fcst <- function(
         tsbox::ts_xts()
     )
 
-  # construct additional series required by QMOD
+  # construct additional series required by the model
   data_existing_fcst_xts$GDP_R_RES <- data_existing_fcst_xts$GDP_R_US +
     data_existing_fcst_xts$GDP_R_JP / data_existing_fcst_xts$YXR_JP
 
   # construct current base-year CPI from existing CPI series
-  if ("CPI_B_HON" %in% names(data_qmod_xts)) {
+  if ("CPI_B_HON" %in% names(data_model_xts)) {
     data_existing_fcst_xts <- data_existing_fcst_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
       dplyr::left_join(
         tsbox::ts_chain(
-          data_qmod_xts %>% tsbox::ts_pick("CPI_B_HON") %>% tsbox::ts_na_omit(),
+          data_model_xts %>%
+            tsbox::ts_pick("CPI_B_HON") %>%
+            tsbox::ts_na_omit(),
           data_existing_fcst_xts %>%
             tsbox::ts_pick("CPI_HON") %>%
             tsbox::ts_na_omit()
@@ -160,9 +162,17 @@ import_existing_fcst <- function(
   }
 
   # make a copy of the existing forecast data before subsetting to exog_list
-  data_existing_fcst_all_xts <- data_existing_fcst_xts
+  data_existing_fcst_full_xts <- data_existing_fcst_xts %>%
+    tsbox::ts_tbl() %>%
+    dplyr::mutate(
+      id = stringr::str_replace_all(
+        .data$id,
+        c("OCUPP_" = "OCUPPADJ_", "TRMS_" = "TRMSADJ_")
+      )
+    ) %>%
+    tsbox::ts_xts()
 
-  exog_list <- equations_qmod$vexog %>%
+  exog_list <- model_equations$vexog %>%
     stringr::str_subset("IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON", negate = TRUE)
 
   message(
@@ -170,56 +180,68 @@ import_existing_fcst <- function(
     stringr::str_flatten(exog_list, collapse = ", ")
   )
 
-  # ensure the pseudo-exogenous series are available in data_qmod_xts and data_existing_fcst_xts
-  missing_in_qmod <- setdiff(exog_list, names(data_qmod_xts))
-  if (length(missing_in_qmod) > 0) {
+  # ensure the pseudo-exogenous series are available in data_model_xts and data_existing_fcst_xts
+  missing_in_model <- setdiff(exog_list, names(data_model_xts))
+  if (length(missing_in_model) > 0) {
     warning(
-      "The following exogenous series are missing from data_qmain: ",
-      stringr::str_flatten(missing_in_qmod, collapse = ", ")
+      "The following exogenous series are missing from history: ",
+      stringr::str_flatten(missing_in_model, collapse = ", ")
     )
   }
   missing_in_fcst <- setdiff(exog_list, names(data_existing_fcst_xts))
   if (length(missing_in_fcst) > 0) {
     stop(
-      "The following exogenous series are missing from data_existing_fcst: ",
+      "The following exogenous series are missing from existing forecast: ",
       stringr::str_flatten(missing_in_fcst, collapse = ", ")
     )
   }
 
-  # extend data_qmod_xts with the pseudo-exogenous series
-  data_exog_ext_fcst_xts <- data_qmod_xts %>%
+  # extend data_model_xts with the pseudo-exogenous series
+  data_model_ext_xts <- data_model_xts %>%
     fcutils::multi_chain(data_existing_fcst_xts, exog_list)
-
-  # replace series in exog_list with forecast chained to history
-  data_existing_fcst_xts <- data_existing_fcst_all_xts %>%
-    tsbox::ts_tbl() %>%
-    dplyr::filter(!(.data$id %in% exog_list)) %>%
-    tsbox::ts_c(data_exog_ext_fcst_xts) %>%
-    tsbox::ts_xts()
 
   if (isTRUE(save_output)) {
     # save the pseudo-exogenous paths alongside the main dataset
     saveRDS(
-      data_existing_fcst_xts,
+      data_model_ext_xts,
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("data_existing_fcst.RDS")
+        stringr::str_glue("data_model_ext_xts.RDS")
       )
     )
 
-    data_existing_fcst_xts %>%
+    data_model_ext_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
       readr::write_csv(
         file = here::here(
           dat_prcsd_dir,
-          stringr::str_glue("data_existing_fcst.csv")
+          stringr::str_glue("data_model_ext_xts.csv")
+        )
+      )
+
+    # save the the full existing forecast (can be used for model selection)
+    saveRDS(
+      data_existing_fcst_full_xts,
+      file = here::here(
+        dat_prcsd_dir,
+        stringr::str_glue("data_existing_fcst_full.RDS")
+      )
+    )
+
+    data_existing_fcst_full_xts %>%
+      tsbox::ts_tbl() %>%
+      tsbox::ts_wide() %>%
+      readr::write_csv(
+        file = here::here(
+          dat_prcsd_dir,
+          stringr::str_glue("data_existing_fcst_full.csv")
         )
       )
   }
 
   list(
-    data_existing_fcst = data_existing_fcst_xts,
+    data_model_ext_xts = data_model_ext_xts,
     exog_list = exog_list
   )
 }
@@ -227,7 +249,7 @@ import_existing_fcst <- function(
 existing_forecast <- import_existing_fcst(
   dat_raw_dir,
   dat_prcsd_dir,
-  equations_qmod,
-  data_qmod_xts,
+  model_equations,
+  data_model_xts,
   save_output
 )
