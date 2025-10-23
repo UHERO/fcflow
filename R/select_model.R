@@ -13,7 +13,7 @@
 #' plot compares new forecast with pseudo-forecast
 #'
 #' @param cfg Configuration list produced by [load_forecast_cfg()].
-#' @param mod_select_data Optional extended dataset from [data_gets()] (wide tibble,
+#' @param model_select_data Optional extended dataset from [data_gets()] (wide tibble,
 #'   xts, or tsbox-compatible object). When `NULL`, the data are read from disk.
 #' @param indicators Optional indicator variables (xts). When `NULL`, the file
 #'   specified in the configuration is loaded.
@@ -22,7 +22,7 @@
 #' @export
 select_model <- function(
   cfg = load_forecast_cfg(),
-  mod_select_data = NULL,
+  model_select_data = NULL,
   indicators = NULL
 ) {
   # some gets functions don't work without loading the namespace
@@ -75,14 +75,14 @@ select_model <- function(
   second_pass <- isTRUE(require_cfg(cfg, c("select_model", "second_pass")))
   save_eq <- isTRUE(require_cfg(cfg, c("select_model", "save_equation")))
 
-  mselect_start <- require_cfg(
+  model_select_start <- require_cfg(
     cfg,
-    c("select_model", "mselect_range", "start")
+    c("select_model", "model_select_range", "start")
   ) %>%
     fcutils::to_ymd()
-  mselect_end <- require_cfg(
+  model_select_end <- require_cfg(
     cfg,
-    c("select_model", "mselect_range", "end")
+    c("select_model", "model_select_range", "end")
   ) %>%
     fcutils::to_ymd()
 
@@ -125,17 +125,17 @@ select_model <- function(
   if (is.null(plot_filename) || !nzchar(plot_filename)) {
     plot_filename <- "plot_out.html"
   }
-  plot_window_years <- plot_cfg$window_years
-  if (is.null(plot_window_years)) {
-    plot_window_years <- 15
+  plot_history_years <- plot_cfg$history_years
+  if (is.null(plot_history_years)) {
+    plot_history_years <- 15
   }
   plot_preview_html <- isTRUE(plot_cfg$preview_html)
 
-  mod_select_data_file <- require_cfg(
+  model_select_data_file <- require_cfg(
     cfg,
     c(
       "data_gets",
-      "mod_select_data_file"
+      "model_select_data_file"
     )
   )
 
@@ -143,14 +143,14 @@ select_model <- function(
   # get data ----
   # **************************
 
-  hist_q_in <- if (is.null(mod_select_data)) {
+  hist_q_in <- if (is.null(model_select_data)) {
     readr::read_csv(
-      file = here::here(dat_prcsd_dir, mod_select_data_file),
+      file = here::here(dat_prcsd_dir, model_select_data_file),
       show_col_types = FALSE
     ) %>%
       tsbox::ts_long()
   } else {
-    mod_select_data %>%
+    model_select_data %>%
       tsbox::ts_tbl()
   }
 
@@ -216,7 +216,7 @@ select_model <- function(
   # use a subset of observations for model selection
   hist_q_mselect <- hist_q_mod %>%
     tsbox::ts_long() %>%
-    tsbox::ts_span(mselect_start, mselect_end)
+    tsbox::ts_span(model_select_start, model_select_end)
 
   # select candidate target variables
   yvar_0 <- hist_q_mselect %>%
@@ -670,7 +670,7 @@ select_model <- function(
   # generate plots
   plot_out <- fcutils::plot_comp_2(
     plot_data_fcst %>% tsbox::ts_long(),
-    rng_start = as.character(Sys.Date() - lubridate::years(plot_window_years)),
+    rng_start = as.character(Sys.Date() - lubridate::years(plot_history_years)),
     rng_end = fcst_end %>% as.character(),
     height = 400,
     width = 800

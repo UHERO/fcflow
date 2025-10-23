@@ -22,19 +22,19 @@ data_gets <- function(
 ) {
   # Pull core paths and filenames from the configuration.
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
-  history_file <- require_cfg(cfg, c("data_gets", "history_file"))
-  existing_fcst_file <- require_cfg(
+  history_file <- require_cfg(cfg, c("data_main", "data_main_file"))
+  existing_forecast_file <- require_cfg(
     cfg,
     c(
       "data_gets",
-      "existing_fcst_file"
+      "existing_forecast_file"
     )
   )
-  mod_select_data_file <- require_cfg(
+  model_select_data_file <- require_cfg(
     cfg,
     c(
       "data_gets",
-      "mod_select_data_file"
+      "model_select_data_file"
     )
   )
   save_output <- require_cfg(cfg, c("data_gets", "save_output"))
@@ -51,7 +51,7 @@ data_gets <- function(
 
   if (is.null(existing_forecast)) {
     data_existing_fcst_tbl <- readr::read_csv(
-      file = here::here(dat_prcsd_dir, existing_fcst_file),
+      file = here::here(dat_prcsd_dir, existing_forecast_file),
       show_col_types = FALSE
     )
   } else {
@@ -99,60 +99,39 @@ data_gets <- function(
   )
 
   # Extend overlapping series by chaining history with the pseudo forecast.
-  data_main_ext <- fcutils::multi_chain(
+  data_main_extended <- fcutils::multi_chain(
     data_main_tbl,
     data_existing_fcst_tbl,
     ids = sers_to_extend
   )
 
-  # data_main_ext_augm <- data_main_ext %>%
-  #   dplyr::mutate(TRMSADJ_HON_HI = TRMSADJ_HON / TRMSADJ_HI) %>%
-  #   dplyr::mutate(VADC_PRM_HI = VADC_HI * PRM_HI) %>%
-  #   dplyr::mutate(PPRM_TRMSADJ_HI = PPRM_HI * TRMSADJ_HI) %>%
-  #   dplyr::mutate(PPRM_TRMSADJ_HAW = PPRM_HAW * TRMSADJ_HAW) %>%
-  #   dplyr::mutate(PPRM_TRMSADJ_HON = PPRM_HON * TRMSADJ_HON) %>%
-  #   dplyr::mutate(PPRM_TRMSADJ_KAU = PPRM_KAU * TRMSADJ_KAU) %>%
-  #   dplyr::mutate(PPRM_TRMSADJ_MAU = PPRM_MAU * TRMSADJ_MAU) %>%
-  #   dplyr::rename("CPI_B_HON_SHORT" = "CPI_B_HON") %>%
-  #   dplyr::left_join(
-  #     tsbox::ts_chain(
-  #       data_main_ext %>%
-  #         tsbox::ts_long() %>%
-  #         tsbox::ts_pick("CPI_B_HON") %>%
-  #         tsbox::ts_na_omit(),
-  #       data_main_ext %>%
-  #         tsbox::ts_long() %>%
-  #         tsbox::ts_pick("CPI_HON") %>%
-  #         tsbox::ts_na_omit()
-  #     ) %>%
-  #       dplyr::mutate(id = "CPI_B_HON") %>%
-  #       tsbox::ts_wide(),
-  #     by = "time"
-  #   )
-
   # Convert to xts for downstream GETS modelling steps.
-  data_main_ext_xts <- data_main_ext %>%
+  data_main_extended_xts <- data_main_extended %>%
     fcutils::conv_xts()
 
   # Save artefacts when requested so other scripts can reuse the extended data.
   if (isTRUE(save_output)) {
     saveRDS(
-      data_main_ext_xts,
+      data_main_extended_xts,
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("data_main_ext.RDS")
+        model_select_data_file %>% stringr::str_replace(".csv$", ".RDS")
       )
     )
 
-    data_main_ext_xts %>%
+    data_main_extended_xts %>%
       tsbox::ts_tbl() %>%
       tsbox::ts_wide() %>%
       readr::write_csv(
-        file = here::here(dat_prcsd_dir, "data_main_ext.csv")
+        file = here::here(dat_prcsd_dir, model_select_data_file)
       )
   }
 
-  invisible(data_main_ext_xts)
+  invisible(
+    list(
+      data_main_extended = data_main_extended_xts
+    )
+  )
 }
 
 if (identical(environment(), globalenv())) {

@@ -6,14 +6,14 @@
 \usage{
 select_model(
   cfg = load_forecast_cfg(),
-  mod_select_data = NULL,
+  model_select_data = NULL,
   indicators = NULL
 )
 }
 \arguments{
 \item{cfg}{Configuration list produced by [load_forecast_cfg()].}
 
-\item{mod_select_data}{Optional extended dataset from [data_gets()] (wide tibble,
+\item{model_select_data}{Optional extended dataset from [data_gets()] (wide tibble,
 xts, or tsbox-compatible object). When `NULL`, the data are read from disk.}
 
 \item{indicators}{Optional indicator variables (xts). When `NULL`, the file

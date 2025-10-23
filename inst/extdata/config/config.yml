@@ -128,9 +128,8 @@ plot_forecast:
   preview_html: true
 
 data_gets:
-  history_file: data_main_dev.csv
-  existing_fcst_file: data_existing_fcst_all.csv
-  mod_select_data_file: data_main_ext.csv
+  existing_forecast_file: data_existing_fcst_all.csv
+  model_select_data_file: data_main_extended.csv
   save_output: true
 
 select_model:
@@ -151,7 +150,7 @@ select_model:
   max_lag: 4
   second_pass: true
   save_equation: true
-  mselect_range:
+  model_select_range:
     start: 1970.1
     end: 2018.4
   estimation_range:
@@ -171,5 +170,5 @@ select_model:
     t_pval: 0.05
   plot:
     filename: plot_out.html
-    window_years: 15
+    history_years: 15
     preview_html: true
