@@ -9,7 +9,7 @@ pseudo-forecast."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fcflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9018</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@ pseudo-forecast.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">make_data_gets</span><span class="op">(</span></span>
 <span>  cfg <span class="op">=</span> <span class="fu"><a href="load_forecast_cfg.html">load_forecast_cfg</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  data_qmain <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  data_main <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  existing_forecast <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -55,7 +55,7 @@ pseudo-forecast.</p>
 <dd><p>List-like configuration returned by [load_forecast_cfg()].</p></dd>
 
 
-<dt id="arg-data-qmain">data_qmain<a class="anchor" aria-label="anchor" href="#arg-data-qmain"></a></dt>
+<dt id="arg-data-main">data_main<a class="anchor" aria-label="anchor" href="#arg-data-main"></a></dt>
 <dd><p>Optional preloaded history (ts-boxable object). When
 `NULL`, the function reads the history csv from disk.</p></dd>
 
