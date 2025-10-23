@@ -4,18 +4,18 @@
 <url><loc>https://uhero.github.io/fcflow/authors.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/index.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/combine_equations.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/data_gets.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/fcflow-package.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/gets_model_select.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/index.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/load_forecast_cfg.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/make_data_gets.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/make_data_qmain.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/make_data_qmod.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_data_main.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_data_model.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/make_indicators.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/make_qmod.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/make_model.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/pipe.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/plot_qsol.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/plot_forecast.html</loc></url>
 <url><loc>https://uhero.github.io/fcflow/reference/run_script_with_args.html</loc></url>
-<url><loc>https://uhero.github.io/fcflow/reference/sol_qmod.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/select_model.html</loc></url>
+<url><loc>https://uhero.github.io/fcflow/reference/solve_model.html</loc></url>
 </urlset>
 
