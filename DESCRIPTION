@@ -1,6 +1,6 @@
 Package: fcflow
 Title: Forecast Workflow
-Version: 0.0.0.9023
+Version: 0.0.0.9024
 Authors@R: person(given = "Peter", family = "Fuleky", role = c("aut", "cre"),
   email = "fuleky@hawaii.edu")
 Description: Tools for UHERO forecast model data preparation, estimation,
