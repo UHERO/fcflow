@@ -34,8 +34,8 @@ make_model <- function(
     cfg,
     c("make_model", "estimated_equations_file")
   )
-  add0_factors_file <- require_cfg(cfg, c("data_model", "add0_factors_file"))
-  exog_range_file <- require_cfg(cfg, c("data_model", "exog_range_file"))
+  add0_factors_file <- require_cfg(cfg, c("make_model", "add0_factors_file"))
+  exog_range_file <- require_cfg(cfg, c("make_model", "exog_range_file"))
   save_output <- require_cfg(cfg, c("make_model", "save_output"))
 
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))

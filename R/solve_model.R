@@ -34,8 +34,8 @@ solve_model <- function(
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   equations_dir <- require_cfg(cfg, c("paths", "equations"))
   addfac_script <- require_cfg(cfg, c("paths", "addfac_script"))
-  add0_factors_file <- require_cfg(cfg, c("data_model", "add0_factors_file"))
-  exog_range_file <- require_cfg(cfg, c("data_model", "exog_range_file"))
+  add0_factors_file <- require_cfg(cfg, c("make_model", "add0_factors_file"))
+  exog_range_file <- require_cfg(cfg, c("make_model", "exog_range_file"))
 
   simulation_start <- lubridate::parse_date_time(
     simulation_start,
