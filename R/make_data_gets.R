@@ -74,7 +74,7 @@ make_data_gets <- function(
         qmain_names
       ) %>%
         stringr::str_subset(
-          "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|S^EASON|^QV",
+          "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|^SEASON|^QV",
           negate = TRUE
         ),
       collapse = ", "
@@ -89,7 +89,7 @@ make_data_gets <- function(
         forecast_names
       ) %>%
         stringr::str_subset(
-          "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|S^EASON|^QV",
+          "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|^SEASON|^QV",
           negate = TRUE
         ),
       collapse = ", "

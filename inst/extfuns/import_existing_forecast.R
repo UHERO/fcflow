@@ -184,7 +184,7 @@ import_existing_fcst <- function(
 
   exog_list <- model_equations$vexog %>%
     stringr::str_subset(
-      "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|S^EASON|^QV",
+      "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|^SEASON|^QV",
       negate = TRUE
     )
 
