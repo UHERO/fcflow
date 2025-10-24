@@ -2,6 +2,8 @@
 # Set addfactors
 # **************************
 
+# fmt: skip file
+
 #' Set addfactors
 #'
 #' @param add0_factors_xts xts object produced by [make_model()] containing

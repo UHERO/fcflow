@@ -151,6 +151,7 @@ make_model <- function(
         # cat("\n", "Identity ", i, "\n", sep = "")
         cat(estimated_equations$identities[[i]]$eqFull, "\n")
       }
+      sink()
     }
   } else {
     message("Load previously estimated equations...")

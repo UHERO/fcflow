@@ -44,6 +44,14 @@ import_existing_fcst <- function(
     dplyr::rename_with(
       ~ stringr::str_replace_all(.x, c("@" = "_", "OCUP%" = "OCUPP"))
     ) %>%
+    dplyr::mutate(
+      dplyr::across(
+        .cols = dplyr::starts_with(c("OCUPP_", "TRMS_", "PPRM_")),
+        .fns = ~ .x %>% as.numeric(),
+        .names = "{str_replace_all(.col, 
+        c('OCUPP_' = 'OCUPPADJ_', 'TRMS_' = 'TRMSADJ_', 'PPRM_' = 'PPRMADJ_'))}"
+      )
+    ) %>%
     tsbox::ts_long() %>%
     tsbox::ts_xts()
 
@@ -73,6 +81,14 @@ import_existing_fcst <- function(
         c("@" = "_", "OCUP%" = "OCUPP", "$" = "_A")
       ),
       .cols = -"time"
+    ) %>%
+    dplyr::mutate(
+      dplyr::across(
+        .cols = dplyr::starts_with(c("OCUPP_", "TRMS_", "PPRM_")),
+        .fns = ~ .x %>% as.numeric(),
+        .names = "{str_replace_all(.col, 
+        c('OCUPP_' = 'OCUPPADJ_', 'TRMS_' = 'TRMSADJ_', 'PPRM_' = 'PPRMADJ_'))}"
+      )
     ) %>%
     tsbox::ts_long() %>%
     tsbox::ts_xts()
@@ -164,22 +180,13 @@ import_existing_fcst <- function(
   }
 
   # make a copy of the existing forecast data before subsetting to exog_list
-  data_existing_fcst_full_xts <- data_existing_fcst_xts %>%
-    tsbox::ts_tbl() %>%
-    tsbox::ts_wide() %>%
-    dplyr::mutate(
-      dplyr::across(
-        .cols = dplyr::starts_with(c("OCUPP_", "TRMS_", "PPRM_")),
-        .fns = ~ .x %>% as.numeric(),
-        .names = "{str_replace_all(.col, 
-        c('OCUPP_' = 'OCUPPADJ_', 'TRMS_' = 'TRMSADJ_', 'PPRM_' = 'PPRMADJ_'))}"
-      )
-    ) %>%
-    tsbox::ts_long() %>%
-    tsbox::ts_xts()
+  data_existing_fcst_full_xts <- data_existing_fcst_xts
 
   exog_list <- model_equations$vexog %>%
-    stringr::str_subset("IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON", negate = TRUE)
+    stringr::str_subset(
+      "^IIS_|^SIS_|^IQ|^TREND|^CONST|^DUM|S^EASON|^QV",
+      negate = TRUE
+    )
 
   message(
     "The model relies on the following exogenous series (excluding deterministic variables): \n",

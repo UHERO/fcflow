@@ -123,12 +123,12 @@ plot_forecast:
   plot_width: 1500
   plot_height: 650
   yoy_growth: true
-  comparison_forecast_file: data_existing_fcst_all.csv
+  comparison_forecast_file: data_existing_fcst_full.csv
   save_output: true
   preview_html: true
 
 data_gets:
-  existing_forecast_file: data_existing_fcst_all.csv
+  existing_forecast_file: data_existing_fcst_full.csv
   model_select_data_file: data_main_extended.csv
   save_output: true
 
