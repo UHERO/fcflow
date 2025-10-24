@@ -1,5 +1,5 @@
 # *************************
-# Estimate QMOD
+# Estimate the model
 # *************************
 
 #' Estimate or Refresh Model
@@ -34,43 +34,15 @@ make_model <- function(
     cfg,
     c("make_model", "estimated_equations_file")
   )
+  add0_factors_file <- require_cfg(cfg, c("data_model", "add0_factors_file"))
+  exog_range_file <- require_cfg(cfg, c("data_model", "exog_range_file"))
   save_output <- require_cfg(cfg, c("make_model", "save_output"))
 
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   equations_dir <- require_cfg(cfg, c("paths", "equations"))
 
-  estimation_start <- lubridate::parse_date_time(
-    estimation_start,
-    c("yq", "ymd")
-  ) %>%
-    lubridate::as_date()
-  estimation_end <- lubridate::parse_date_time(
-    estimation_end,
-    c("yq", "ymd")
-  ) %>%
-    lubridate::as_date()
-
-  message("Get global tsrange for estimation...")
-  est_tsrange <- c(
-    lubridate::year(estimation_start),
-    lubridate::quarter(estimation_start),
-    lubridate::year(estimation_end),
-    lubridate::quarter(estimation_end)
-  )
-
-  if (is.null(model_equations)) {
-    message("Load equations...")
-    # fall back to the saved equations bundle if none was provided by the caller
-    model_equations <- readRDS(
-      file = here::here(
-        equations_dir,
-        equations_file %>% stringr::str_replace(".txt$", ".RDS")
-      )
-    )
-  }
-
   if (is.null(data_model)) {
-    message("Load data for qmod...")
+    message("Load data for model...")
     # load the model-ready data set that `data_model()` saved earlier
     data_model_xts <- readRDS(
       file = here::here(
@@ -82,50 +54,57 @@ make_model <- function(
     data_model_xts <- data_model
   }
 
-  message("Initialize addfactors...")
-  # add factors start at zero so analysts can later hand-edit the CSV or R file
-  add0_factors_xts <- data_model_xts %>%
-    tsbox::ts_pick(model_equations$vendog) %>%
-    tsbox::ts_tbl() %>%
-    dplyr::mutate(value = 0) %>%
-    tsbox::ts_xts()
-
-  message("Capture ragged edge...")
-  # capture the ragged edge (last historic observation) for each endogenous variable
-  exog_range <- data_model_xts %>%
-    tsbox::ts_pick(model_equations$vendog) %>%
-    tsbox::ts_tslist() %>%
-    purrr::map(tsbox::ts_summary) %>%
-    purrr::map(
-      function(x) {
-        c(
-          lubridate::year(x$start),
-          lubridate::quarter(x$start),
-          lubridate::year(x$end),
-          lubridate::quarter(x$end)
-        )
-      }
-    )
-
   message("Convert from xts to bimets...")
-  data_qbimets <- data_model_xts %>%
+  data_bimets <- data_model_xts %>%
     tsbox::ts_tbl() %>%
     tidyr::drop_na() %>%
     tsbox::ts_tslist() %>%
     purrr::map(bimets::as.bimets)
 
   if (isTRUE(reestimate)) {
+    if (is.null(model_equations)) {
+      message("Load equations...")
+      # fall back to the saved equations bundle if none was provided by the caller
+      model_equations <- readRDS(
+        file = here::here(
+          equations_dir,
+          equations_file %>% stringr::str_replace(".txt$", ".RDS")
+        )
+      )
+    }
+
     message("Load data into model...")
     # load the data into each equation and re-estimate so every coefficient reflects the new vintage
     model_equations_with_data <- bimets::LOAD_MODEL_DATA(
       model = model_equations,
-      modelData = data_qbimets
+      modelData = data_bimets
     )
 
     if (isTRUE(discover_tsrange)) {
       message("Set local tsrange for estimation...")
       model_equations_with_data <- model_equations_with_data %>%
         fcutils::set_tsrange(max_lag = max_lag)
+    }
+
+    if (isTRUE(force_est_tsrange)) {
+      estimation_start <- lubridate::parse_date_time(
+        estimation_start,
+        c("yq", "ymd")
+      ) %>%
+        lubridate::as_date()
+      estimation_end <- lubridate::parse_date_time(
+        estimation_end,
+        c("yq", "ymd")
+      ) %>%
+        lubridate::as_date()
+
+      message("Get global tsrange for estimation...")
+      est_tsrange <- c(
+        lubridate::year(estimation_start),
+        lubridate::quarter(estimation_start),
+        lubridate::year(estimation_end),
+        lubridate::quarter(estimation_end)
+      )
     }
 
     if (isTRUE(save_eq)) {
@@ -165,24 +144,46 @@ make_model <- function(
     message("Add data to previously estimated equations...")
     estimated_equations <- bimets::LOAD_MODEL_DATA(
       model = estimated_equations,
-      modelData = data_qbimets
+      modelData = data_bimets
     )
   }
+
+  message("Initialize addfactors...")
+  # add factors start at zero so analysts can later hand-edit the CSV or R file
+  add0_factors_xts <- data_model_xts %>%
+    tsbox::ts_pick(estimated_equations$vendog) %>%
+    tsbox::ts_tbl() %>%
+    dplyr::mutate(value = 0) %>%
+    tsbox::ts_xts()
+
+  message("Capture ragged edge...")
+  # capture the ragged edge (last historic observation) for each endogenous variable
+  exog_range <- data_model_xts %>%
+    tsbox::ts_pick(estimated_equations$vendog) %>%
+    tsbox::ts_tslist() %>%
+    purrr::map(tsbox::ts_summary) %>%
+    purrr::map(
+      function(x) {
+        c(
+          lubridate::year(x$start),
+          lubridate::quarter(x$start),
+          lubridate::year(x$end),
+          lubridate::quarter(x$end)
+        )
+      }
+    )
 
   if (isTRUE(save_output)) {
     message("Save model data...")
     # save add factors, ragged-edge metadata, and the (possibly re-estimated) BIMETS object
     saveRDS(
       add0_factors_xts,
-      file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
+      file = here::here(dat_prcsd_dir, add0_factors_file)
     )
 
     saveRDS(
       exog_range,
-      file = here::here(
-        equations_dir,
-        stringr::str_glue("exog_range.RDS")
-      )
+      file = here::here(equations_dir, exog_range_file)
     )
 
     saveRDS(

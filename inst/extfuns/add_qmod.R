@@ -11,7 +11,7 @@
 #'
 #' @return Modified xts object with addfactors.
 #' @keywords internal
-add_qmod <- function(add0_factors_xts) {
+add_factors <- function(add0_factors_xts) {
   stopifnot(!missing(add0_factors_xts))
 
   add_factors_xts <- add0_factors_xts
@@ -21,4 +21,4 @@ add_qmod <- function(add0_factors_xts) {
   add_factors_xts
 }
 
-add_factors_xts <- add_qmod(add0_factors_xts)
+add_factors_xts <- add_factors(add0_factors_xts)

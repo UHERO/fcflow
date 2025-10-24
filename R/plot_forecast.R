@@ -1,5 +1,5 @@
 # *************************
-# Plot QMOD forecasts
+# Plot forecasts
 # *************************
 
 #' Plot Forecast Histories
@@ -23,7 +23,7 @@ plot_forecast <- function(
   history = NULL
 ) {
   curr_vint <- require_cfg(cfg, c("vintages", "curr"))
-  prev_vint <- require_cfg(cfg, c("vintages", "prev"))
+  comp_vint <- require_cfg(cfg, c("vintages", "comp"))
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   out_dir <- require_cfg(cfg, c("paths", "output"))
   out_fig_dir <- require_cfg(cfg, c("paths", "figures"))
@@ -39,7 +39,7 @@ plot_forecast <- function(
   yonly <- require_cfg(plot_cfg, c("yonly"))
   annual <- require_cfg(plot_cfg, c("annual"))
   load_curr_vint <- require_cfg(plot_cfg, c("load_curr_vint"))
-  load_prev_vint <- require_cfg(plot_cfg, c("load_prev_vint"))
+  load_comp_vint <- require_cfg(plot_cfg, c("load_comp_vint"))
   load_history <- require_cfg(plot_cfg, c("load_history"))
   plot_width <- require_cfg(plot_cfg, c("plot_width"))
   plot_height <- require_cfg(plot_cfg, c("plot_height"))
@@ -75,9 +75,9 @@ plot_forecast <- function(
 
   namepre <- if (isTRUE(tourplot)) "tour" else "macro"
   plot_name <- if (isTRUE(short)) {
-    paste0(namepre, "-sr-", curr_vint, "-vs-", prev_vint, ".html")
+    paste0(namepre, "-sr-", curr_vint, "-vs-", comp_vint, ".html")
   } else {
-    paste0(namepre, "-lr-", curr_vint, "-vs-", prev_vint, ".html")
+    paste0(namepre, "-lr-", curr_vint, "-vs-", comp_vint, ".html")
   }
   plot_loc <- here::here(out_fig_dir, plot_name)
 
@@ -127,7 +127,7 @@ plot_forecast <- function(
   }
 
   # comparison forecast gives the “old” path in the plots
-  if (isTRUE(load_prev_vint)) {
+  if (isTRUE(load_comp_vint)) {
     message("Load comparison forecast...")
     comparison_forecast <- readRDS(
       file = here::here(
@@ -137,11 +137,11 @@ plot_forecast <- function(
     ) %>%
       tsbox::ts_tbl() %>%
       dplyr::mutate(
-        id = stringr::str_glue("{id}_{prev_vint}") %>% as.character()
+        id = stringr::str_glue("{id}_{comp_vint}") %>% as.character()
       )
   } else if (is.null(comparison_forecast)) {
     stop(
-      "Previous forecast data must be supplied when load_prev_vint is FALSE."
+      "Previous forecast data must be supplied when load_comp_vint is FALSE."
     )
   }
 
@@ -166,8 +166,8 @@ plot_forecast <- function(
   }
 
   # assemble current forecast, previous forecast, and history into one tidy object for plotting
-  fcst_prev_hist <- tsbox::ts_c(forecast, comparison_forecast, history)
-  plot_list <- unique(fcst_prev_hist$id) %>%
+  fcst_comp_hist <- tsbox::ts_c(forecast, comparison_forecast, history)
+  plot_list <- unique(fcst_comp_hist$id) %>%
     tibble::as_tibble_col() %>%
     dplyr::mutate(
       selector = stringr::str_detect(
@@ -181,12 +181,12 @@ plot_forecast <- function(
 
   if (isTRUE(save_output)) {
     message("Save plot data...")
-    fcst_prev_hist %>%
+    fcst_comp_hist %>%
       dplyr::arrange(.data$id, .data$time) %>%
       tsbox::ts_wide() %>%
       readr::write_csv(here::here(
         out_dir,
-        stringr::str_glue("fcst_prev_hist.csv")
+        stringr::str_glue("fcst_comp_hist.csv")
       ))
   }
 
@@ -195,7 +195,7 @@ plot_forecast <- function(
   plot_out <- plot_list %>%
     purrr::map(
       ~ fcutils::plot_fc(
-        fcst_prev_hist %>%
+        fcst_comp_hist %>%
           dplyr::filter(stringr::str_detect(.data$id, stringr::str_c("^", .x))),
         rng_start = plot_start,
         rng_end = as.character(plot_end),
@@ -221,13 +221,13 @@ plot_forecast <- function(
 
   if (isTRUE(annual)) {
     message("Generate annual plots...")
-    fcst_prev_hist_a <- fcst_prev_hist %>%
+    fcst_comp_hist_a <- fcst_comp_hist %>%
       fcutils::aggr(conv_type = "uhero")
 
     plot_out_a <- plot_list %>%
       purrr::map(
         ~ fcutils::plot_fc(
-          fcst_prev_hist_a %>%
+          fcst_comp_hist_a %>%
             dplyr::filter(stringr::str_detect(
               .data$id,
               stringr::str_c("^", .x)
@@ -260,7 +260,7 @@ plot_forecast <- function(
     list(
       plots = plot_out,
       plot_path = plot_loc,
-      data = fcst_prev_hist,
+      data = fcst_comp_hist,
       comparison_forecast = comparison_forecast,
       history = history
     )

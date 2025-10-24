@@ -2,31 +2,8 @@ vintages:
   comp: 25Q1
   curr: dev
 
-paths:
-  raw: data/raw
-  processed: data/processed
-  equations: equations
-  output: output
-  figures: output/figures
-  extend_script: R/extend_main_history.R
-  wrangl_script: R/wrangle_data.R
-  impexf_script: R/import_existing_forecast.R
-  addfac_script: R/add_qmod.R
-  toursol_plot_list: R/toursol_plot_list.R
-  qsol_plot_list: R/qsol_plot_list.R
-
-constants:
-  bank_start: 1970.1
-  bank_end: 2065.4
-
 data_main:
-  data_from_disk: true
-  udaman_export_id: 333
-  udaman_export_file: 333.csv
-  extend_history: false
-  indicators_file: indicators.RDS
-  data_main_file: data_main.csv
-  save_output: true
+  data_from_disk: false
 
 combine_equations:
   equations_subset:
@@ -68,36 +45,13 @@ combine_equations:
     # - vlos                  
     # - y_headline_identitites
     # - ymedc_hon   
-    # - qmod # this is the translated AREMOS model
-  equations_file: model_equations.txt
-  save_output: true
-
-data_model:
-  update_data_main: false # instead run the data_main step explicitly
-  update_equations: false # instead run the combine_equations step explicitly
-  data_model_file: data_model.csv
-  save_output: true
 
 make_model:
   reestimate: true
-  save_eq: true
-  discover_tsrange: false
-  max_lag: 5
-  force_tsrange: false
-  estimation_start: 1990.1
-  estimation_end: 2019.4
-  estimated_equations_file: estimated_model_equations.txt
-  add0_factors_file: add0_factors.RDS
-  exog_range_file: exog_range.RDS
-  save_output: true
 
 solve_model:
   simulation_start: 2020.1
-  simulation_end: 2029.1
-  sim_iter_limit: 100
-  sim_convergence: 0.00001
-  forecast_file: forecast.csv
-  save_output: true
+  simulation_end: 2030.4
 
 plot_forecast:
   short: true
@@ -106,33 +60,20 @@ plot_forecast:
   jobonly: false
   ypjonly: false
   yonly: false
-  load_curr_vint: true
-  load_comp_vint: true
-  load_history: true
   ranges:
     short:
-      plot_start: 2019.4
+      plot_start: 2015.4
       plot_end: 2030.4
       show_table: true
       tab_start: 2025.1
-      tab_end: 2029.4
+      tab_end: 2030.4
     long:
       plot_start: 1990.1
       plot_end: 2056.4
       show_table: false
       tab_start: 2023.3
       tab_end: 2033.4
-  plot_width: 1500
-  plot_height: 650
   yoy_growth: true
-  comparison_forecast_file: data_existing_fcst_full.csv
-  save_output: true
-  preview_html: true
-
-data_gets:
-  existing_forecast_file: data_existing_fcst_full.csv
-  model_select_data_file: data_main_extended.csv
-  save_output: true
 
 select_model:
   yvar: L_TRMS_HON
@@ -169,7 +110,3 @@ select_model:
       lag: null
       pval: null
     t_pval: 0.05
-  plot:
-    filename: plot_out.html
-    history_years: 15
-    preview_html: true

@@ -1,5 +1,5 @@
 # *************************
-# Simulate QMOD
+# Simulate the model
 # *************************
 
 #' Simulate the Quarterly Model
@@ -34,6 +34,8 @@ solve_model <- function(
   dat_prcsd_dir <- require_cfg(cfg, c("paths", "processed"))
   equations_dir <- require_cfg(cfg, c("paths", "equations"))
   addfac_script <- require_cfg(cfg, c("paths", "addfac_script"))
+  add0_factors_file <- require_cfg(cfg, c("data_model", "add0_factors_file"))
+  exog_range_file <- require_cfg(cfg, c("data_model", "exog_range_file"))
 
   simulation_start <- lubridate::parse_date_time(
     simulation_start,
@@ -69,17 +71,14 @@ solve_model <- function(
   if (is.null(exog_range)) {
     message("Load ragged edge...")
     exog_range <- readRDS(
-      file = here::here(
-        equations_dir,
-        stringr::str_glue("exog_range.RDS")
-      )
+      file = here::here(equations_dir, exog_range_file)
     )
   }
 
   if (is.null(add0_factors)) {
     message("Load 0 addfactors...")
     add0_factors_xts <- readRDS(
-      file = here::here(dat_prcsd_dir, stringr::str_glue("add0_qmod.RDS"))
+      file = here::here(dat_prcsd_dir, add0_factors_file)
     )
   } else {
     add0_factors_xts <- add0_factors
@@ -97,7 +96,7 @@ solve_model <- function(
 
   message("Convert addfactors to bimets...")
   # BIMETS expects a list of individual time-series objects for constant adjustments
-  add_qmod.bimets <- add_factors_xts %>%
+  add_qmod_bimets <- add_factors_xts %>%
     tsbox::ts_tbl() %>%
     tsbox::ts_tslist() %>%
     purrr::map(bimets::as.bimets)
@@ -107,7 +106,7 @@ solve_model <- function(
     estimated_equations,
     simType = "FORECAST",
     TSRANGE = sim_tsrange,
-    ConstantAdjustment = add_qmod.bimets,
+    ConstantAdjustment = add_qmod_bimets,
     Exogenize = exog_range,
     simConvergence = sim_convergence,
     simIterLimit = sim_iter_limit,

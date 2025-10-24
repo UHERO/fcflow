@@ -1,0 +1,35 @@
+select_model:
+  yvar: L_TRMS_HON
+  xvars:
+    - OCUPP_HON
+  deterministic:
+    - IQ2
+    - IQ3
+    - IQ4
+    - CONST
+  keep_vars: # force to keep constant, perdictors or certain lags if levels are I(1)
+    # - CONST
+    - L_TRMS_HON
+    - OCUPP_HON
+    - L_TRMS_HON.1
+    - OCUPP_HON.1
+  max_lag: 4
+  second_pass: true
+  save_equation: true
+  model_select_range:
+    start: 1970.1
+    end: 2018.4
+  estimation_range:
+    start: 1970.1
+    end: 2018.4
+  forecast_range:
+    start: 2024.1
+    end: 2045.4
+  diagnostic_tests: # see ?gets::getsm() for details
+    ar_ljung_box:
+      lag: null
+      pval: 0.025
+    arch_ljung_box:
+      lag: null
+      pval: null
+    t_pval: 0.05

@@ -242,7 +242,7 @@ wrangle_data <- function(data_main_xts) {
     dplyr::rename_with(~ stringr::str_replace_all(., c("@" = "_"))) %>%
     fcutils::conv_xts()
 
-  # store the variables used in qmod
+  # store the variables used in the model
   data_main_xts <- data_main_xts %>%
     tsbox::ts_c(dummies_aremos_xts) #%>%
   # DELETE END
