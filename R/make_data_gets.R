@@ -67,23 +67,31 @@ make_data_gets <- function(
     stringr::str_subset("time", negate = TRUE)
 
   message(
-    "These series are in the forecast but not in history: ",
+    "These series are in the forecast but not in history: \n",
     stringr::str_flatten(
       setdiff(
         forecast_names,
         qmain_names
-      ),
+      ) %>%
+        stringr::str_subset(
+          "IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON",
+          negate = TRUE
+        ),
       collapse = ", "
     )
   )
 
   message(
-    "These series are in the history but not in the extension: ",
+    "These series are in the history but not in the extension: \n",
     stringr::str_flatten(
       setdiff(
         qmain_names,
         forecast_names
-      ),
+      ) %>%
+        stringr::str_subset(
+          "IIS_|SIS_|IQ|TREND|CONST|DUM|SEASON",
+          negate = TRUE
+        ),
       collapse = ", "
     )
   )

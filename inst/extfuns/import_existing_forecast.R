@@ -166,12 +166,16 @@ import_existing_fcst <- function(
   # make a copy of the existing forecast data before subsetting to exog_list
   data_existing_fcst_full_xts <- data_existing_fcst_xts %>%
     tsbox::ts_tbl() %>%
+    tsbox::ts_wide() %>%
     dplyr::mutate(
-      id = stringr::str_replace_all(
-        .data$id,
-        c("OCUPP_" = "OCUPPADJ_", "TRMS_" = "TRMSADJ_")
+      dplyr::across(
+        .cols = dplyr::starts_with(c("OCUPP_", "TRMS_", "PPRM_")),
+        .fns = ~ .x %>% as.numeric(),
+        .names = "{str_replace_all(.col, 
+        c('OCUPP_' = 'OCUPPADJ_', 'TRMS_' = 'TRMSADJ_', 'PPRM_' = 'PPRMADJ_'))}"
       )
     ) %>%
+    tsbox::ts_long() %>%
     tsbox::ts_xts()
 
   exog_list <- model_equations$vexog %>%
