@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">fcflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,9 +47,169 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="fcflow">fcflow<a class="anchor" aria-label="anchor" href="#fcflow"></a>
 </h1></div>
-<p>Forecast workflow</p>
+<p>Forecast workflow toolkit for UHERO’s quarterly macro model. The package wraps data preparation, equation management, estimation, simulation, and reporting into a set of reproducible R functions that can be called from scripts, targets pipelines, or interactively.</p>
 <!-- badges: start -->
 
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install dependencies declared in DESCRIPTION (fcutils, bimets, etc.)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"UHERO/fcflow"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># optional: restore the exact development environment</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/restore.html" class="external-link">restore</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Development scripts assume the project is opened in RStudio (or similar) with the working directory set to the repository root so that <code><a href="https://here.r-lib.org/reference/here.html" class="external-link">here::here()</a></code> resolves correctly.</p>
+</div>
+<div class="section level2">
+<h2 id="repository-layout">Repository layout<a class="anchor" aria-label="anchor" href="#repository-layout"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="40%">
+<col width="60%">
+</colgroup>
+<thead><tr class="header">
+<th>Path</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>R/</code></td>
+<td>Exported functions such as <code><a href="reference/make_data_main.html">make_data_main()</a></code>, <code><a href="reference/solve_model.html">solve_model()</a></code>, <code><a href="reference/select_model.html">select_model()</a></code>.</td>
+</tr>
+<tr class="even">
+<td><code>inst/extdata/config/</code></td>
+<td>Template YAML configurations. Copy <code>config.yml</code> into <code>config/</code> and edit for a specific vintage.</td>
+</tr>
+<tr class="odd">
+<td><code>inst/extfuns/</code></td>
+<td>User-editable helper scripts for wrangling, extending history, importing add-factors, and creating plot lists.</td>
+</tr>
+<tr class="even">
+<td>
+<code>data/raw</code>, <code>data/processed</code>, <code>equations</code>, <code>output/figures</code>
+</td>
+<td>Default directories referenced in the config (<code>paths</code> node).</td>
+</tr>
+<tr class="odd">
+<td><code>tools/pack_dev.R</code></td>
+<td>Notes on setting up the development environment.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="configuration">Configuration<a class="anchor" aria-label="anchor" href="#configuration"></a>
+</h2>
+<p>Use <code><a href="reference/load_forecast_cfg.html">fcflow::load_forecast_cfg()</a></code> to read the active configuration. The loader searches in this order:</p>
+<ol style="list-style-type: decimal">
+<li>The explicit <code>path</code> argument.</li>
+<li>
+<code>Sys.getenv("MODDEV_CONFIG")</code>.</li>
+<li>
+<code>here::here("config", "config.yml")</code>.</li>
+<li>The packaged default (<code>inst/extdata/config/config.yml</code> installed with <code>fcflow</code>).</li>
+</ol>
+<p>Key sections in the YAML file:</p>
+<ul>
+<li>
+<code>vintages</code>: current (<code>curr</code>) and comparison (<code>comp</code>) vintage labels.</li>
+<li>
+<code>paths</code>: locations of raw/processed data, equations, figure output, and the helper scripts that are sourced via <code><a href="reference/run_script_with_args.html">run_script_with_args()</a></code>. Update these entries if you relocate the scripts from <code>inst/extfuns/</code>.</li>
+<li>
+<code>data_main</code>, <code>data_model</code>, <code>make_model</code>, <code>solve_model</code>, <code>plot_forecast</code>, <code>data_gets</code>, <code>select_model</code>: module-specific settings controlling filenames, toggles (e.g., <code>update_equations</code>), date ranges, and save locations.</li>
+<li>
+<code>combine_equations</code>: which <code>*_eq.txt</code> files to stitch together and where to cache the combined <code>model_equations.txt</code> / <code>.RDS</code>.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="core-workflow-functions">Core workflow functions<a class="anchor" aria-label="anchor" href="#core-workflow-functions"></a>
+</h2>
+<p>All exported functions accept the configuration object produced by <code><a href="reference/load_forecast_cfg.html">load_forecast_cfg()</a></code> and can take pre-loaded data objects to avoid redundant disk I/O.</p>
+<ol style="list-style-type: decimal">
+<li>
+<code>combine_equations(cfg)</code>: reads the BIMETS equation snippets located under <code>paths$equations</code>, filters by <code>combine_equations$equations_subset</code>, and produces <code>model_equations.txt</code> and <code>.RDS</code>.</li>
+<li>
+<code>make_data_main(cfg, indicators = NULL)</code>: pulls history (either from disk or via <code><a href="https://uhero.github.io/fcutils/reference/get_series_exp.html" class="external-link">fcutils::get_series_exp()</a></code>), applies <code>extend_script</code> and <code>wrangl_script</code>, and writes <code>data_main.csv/.RDS</code> to <code>paths$processed</code>.</li>
+<li>
+<code>make_data_model(cfg, data_main, model_equations)</code>: restricts the master set to the variables required by the model and chains in pseudo-exogenous series via <code>impexf_script</code> (default <code>inst/extfuns/import_existing_forecast.R</code>).</li>
+<li>
+<code>make_model(cfg, data_model, model_equations)</code>: estimates behavioral equations (optionally discovering or forcing TSRANGE), initializes zero add factors, and records the ragged edge metadata.</li>
+<li>
+<code>solve_model(cfg, estimated_equations, exog_range, add0_factors)</code>: sources the add-factor script (<code>paths$addfac_script</code>), runs the BIMETS simulation, and saves <code>forecast.csv/.RDS</code> plus the add-factor log.</li>
+<li>
+<code>plot_forecast(cfg, forecast, comparison_forecast, history)</code>: assembles history/current/comparison vintages, selects the plot universe using the tourism or macro plot list script, and writes interactive HTML charts to <code>paths$figures</code>.</li>
+</ol>
+<p>Each function returns a named list so that outputs can be piped into the next step without needing to touch the filesystem.</p>
+</div>
+<div class="section level2">
+<h2 id="model-selection-and-gets">Model selection and GETS<a class="anchor" aria-label="anchor" href="#model-selection-and-gets"></a>
+</h2>
+<ul>
+<li>
+<code>make_data_gets(cfg, data_main, existing_forecast)</code>: chains the historical dataset with the pseudo-forecast to create the extended panel used for GETS. Outputs <code>data_main_extended.csv/.RDS</code>.</li>
+<li>
+<code>select_model(cfg, model_select_data, indicators)</code>: orchestrates the GETS / ISAT workflow defined in <code>select_model</code> config nodes, saves a candidate equation (<code>model_eq.txt</code>), compiles and estimates it via BIMETS, and produces diagnostic plots in <code>paths$figures</code>.</li>
+</ul>
+<p>Both functions honor the same path conventions as the core workflow and rely on <code>inst/extfuns/model_selection.R</code> for interactive experimentation.</p>
+</div>
+<div class="section level2">
+<h2 id="helper-scripts">Helper scripts<a class="anchor" aria-label="anchor" href="#helper-scripts"></a>
+</h2>
+<p>The scripts under <code>inst/extfuns/</code> are templates that get sourced at runtime:</p>
+<ul>
+<li>
+<code>wrangle_data.R</code>: apply data adjustments that used to live in add-factor files (seasonal dummy tweaks, zeroing pandemic periods, derived ratios, etc.).</li>
+<li>
+<code>extend_qmain_history.R</code>: splice additional history from archived AREMOS TSVs.</li>
+<li>
+<code>import_existing_forecast.R</code>: load QSOL/ASOL files, disaggregate annual series, construct real values, and ensure exogenous drivers exist for every equation.</li>
+<li>
+<code>add_qmod.R</code>: customize add factors prior to solving the model.</li>
+<li>
+<code>qsol_plot_list.R</code> / <code>toursol_plot_list.R</code>: define which mnemonics appear in macro vs. tourism dashboards.</li>
+<li>
+<code>forecast_work.R</code>: convenience script to run any subset of the workflow by toggling booleans in <code>run_steps</code>.</li>
+</ul>
+<p>Copy these files into the locations referenced by <code>paths</code> (or point the config to the copies inside <code>inst/extfuns/</code>) before running the package functions.</p>
+</div>
+<div class="section level2">
+<h2 id="typical-run">Typical run<a class="anchor" aria-label="anchor" href="#typical-run"></a>
+</h2>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uhero.github.io/fcflow/">fcflow</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cfg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/load_forecast_cfg.html">load_forecast_cfg</a></span><span class="op">(</span><span class="op">)</span>        <span class="co"># read config/config.yml or fallback</span></span>
+<span><span class="va">equations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/combine_equations.html">combine_equations</a></span><span class="op">(</span><span class="va">cfg</span><span class="op">)</span></span>
+<span><span class="va">data_main</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_data_main.html">make_data_main</a></span><span class="op">(</span><span class="va">cfg</span><span class="op">)</span><span class="op">$</span><span class="va">data_main</span></span>
+<span><span class="va">data_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_data_model.html">make_data_model</a></span><span class="op">(</span><span class="va">cfg</span>,</span>
+<span>                              data_main <span class="op">=</span> <span class="va">data_main</span>,</span>
+<span>                              model_equations <span class="op">=</span> <span class="va">equations</span><span class="op">$</span><span class="va">model_equations</span><span class="op">)</span></span>
+<span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_model.html">make_model</a></span><span class="op">(</span><span class="va">cfg</span>,</span>
+<span>                  data_model <span class="op">=</span> <span class="va">data_model</span><span class="op">$</span><span class="va">data_model</span>,</span>
+<span>                  model_equations <span class="op">=</span> <span class="va">data_model</span><span class="op">$</span><span class="va">model_equations</span><span class="op">)</span></span>
+<span><span class="va">fcst</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/solve_model.html">solve_model</a></span><span class="op">(</span><span class="va">cfg</span>,</span>
+<span>                    estimated_equations <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">estimated_equations</span>,</span>
+<span>                    exog_range <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">exog_range</span>,</span>
+<span>                    add0_factors <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">add0_factors</span><span class="op">)</span></span>
+<span><span class="va">plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/plot_forecast.html">plot_forecast</a></span><span class="op">(</span><span class="va">cfg</span>, forecast <span class="op">=</span> <span class="va">fcst</span><span class="op">$</span><span class="va">forecast</span><span class="op">)</span></span></code></pre></div>
+<p>Swap any of the intermediate arguments with <code>NULL</code> to fall back to previously saved artifacts on disk.</p>
+</div>
+<div class="section level2">
+<h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
+</h2>
+<ul>
+<li>Use <code><a href="https://rstudio.github.io/renv/reference/restore.html" class="external-link">renv::restore()</a></code> to install compatible dependency versions.</li>
+<li>Run <code>devtools::document()</code>, <code>devtools::check()</code>, and <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> before opening a PR.</li>
+<li>The GitHub action <code>R-CMD-check</code> mirrors the standard <code>devtools::check()</code> run, so ensure it passes locally when possible.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="support--questions">Support / Questions<a class="anchor" aria-label="anchor" href="#support--questions"></a>
+</h2>
+<p>For repo-specific questions, open an issue on GitHub. To request additions to <code>fcutils</code> or the underlying BIMETS equations, coordinate with the UHERO forecast team so the config and helper scripts stay in sync with the latest workflow changes.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
