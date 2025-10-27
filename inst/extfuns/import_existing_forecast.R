@@ -48,7 +48,7 @@ import_existing_fcst <- function(
       dplyr::across(
         .cols = dplyr::starts_with(c("OCUPP_", "TRMS_", "PPRM_")),
         .fns = ~ .x %>% as.numeric(),
-        .names = "{str_replace_all(.col, 
+        .names = "{stringr::str_replace_all(.col, 
         c('OCUPP_' = 'OCUPPADJ_', 'TRMS_' = 'TRMSADJ_', 'PPRM_' = 'PPRMADJ_'))}"
       )
     ) %>%
@@ -86,7 +86,7 @@ import_existing_fcst <- function(
       dplyr::across(
         .cols = dplyr::starts_with(c("OCUPP_", "TRMS_", "PPRM_")),
         .fns = ~ .x %>% as.numeric(),
-        .names = "{str_replace_all(.col, 
+        .names = "{stringr::str_replace_all(.col, 
         c('OCUPP_' = 'OCUPPADJ_', 'TRMS_' = 'TRMSADJ_', 'PPRM_' = 'PPRMADJ_'))}"
       )
     ) %>%
