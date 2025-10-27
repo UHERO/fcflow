@@ -159,7 +159,7 @@ if (isTRUE(run_steps$plot_forecast)) {
     plot_cfg$load_curr_vint <- FALSE
   }
   if (!is.null(comp_override)) {
-    plot_cfg$load_prev_vint <- FALSE
+    plot_cfg$load_comp_vint <- FALSE
   }
   if (!is.null(hist_override)) {
     plot_cfg$load_history <- FALSE

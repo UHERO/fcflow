@@ -86,6 +86,7 @@ make_model <- function(
         fcutils::set_tsrange(max_lag = max_lag)
     }
 
+    est_tsrange <- NULL
     if (isTRUE(force_est_tsrange)) {
       estimation_start <- lubridate::parse_date_time(
         estimation_start,
@@ -114,16 +115,18 @@ make_model <- function(
         estimated_equations_file
       ))
       cat("\n", "ESTIMATION RESULTS", "\n", sep = "")
+    }
 
-      message("Estimate model equations...")
-      estimated_equations <- bimets::ESTIMATE(
-        model_equations_with_data,
-        eqList = model_equations_with_data$vendogBehaviorals,
-        TSRANGE = est_tsrange,
-        forceTSRANGE = force_est_tsrange,
-        quietly = FALSE
-      )
+    message("Estimate model equations...")
+    estimated_equations <- bimets::ESTIMATE(
+      model_equations_with_data,
+      eqList = model_equations_with_data$vendogBehaviorals,
+      TSRANGE = est_tsrange,
+      forceTSRANGE = force_est_tsrange,
+      quietly = FALSE
+    )
 
+    if (isTRUE(save_eq)) {
       message("Add identities to sink...")
       cat("\n", "IDENTITIES", "\n", sep = "")
       for (i in seq_along(estimated_equations$identities)) {

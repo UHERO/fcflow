@@ -20,7 +20,7 @@ make_data_gets(
 When `NULL`, the function reads the csv from disk.}
 }
 \value{
-Invisibly returns the extended xts.
+Invisible list with xts object containing the extended quarterly dataset.
 }
 \description{
 Builds an extended quarterly dataset by chaining the current history with the

@@ -13,7 +13,7 @@ make_data_main(cfg = load_forecast_cfg(), indicators = NULL)
 the function reloads from disk using the configured file name.}
 }
 \value{
-Invisible xts object containing the master quarterly dataset.
+Invisible list with xts object containing the master quarterly dataset.
 }
 \description{
 Downloads (or reloads) history, forecast inputs, adds indicators,

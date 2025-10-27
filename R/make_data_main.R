@@ -11,7 +11,7 @@
 #' @param indicators Optional xts object of indicator variables; when `NULL`
 #'   the function reloads from disk using the configured file name.
 #'
-#' @return Invisible xts object containing the master quarterly dataset.
+#' @return Invisible list with xts object containing the master quarterly dataset.
 #' @export
 make_data_main <- function(cfg = load_forecast_cfg(), indicators = NULL) {
   data_from_disk <- require_cfg(cfg, c("data_main", "data_from_disk"))

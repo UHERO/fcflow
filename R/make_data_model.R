@@ -34,7 +34,8 @@ make_data_model <- function(
   if (is.null(model_equations)) {
     message("Load equations...")
     if (isTRUE(update_equations)) {
-      model_equations <- combine_equations(cfg = cfg)
+      model_equations <- combine_equations(cfg = cfg) %>%
+        magrittr::extract2("model_equations")
     } else {
       model_equations <- readRDS(
         file = here::here(
@@ -48,7 +49,8 @@ make_data_model <- function(
   if (is.null(data_main)) {
     message("Load main data...")
     if (isTRUE(update_data_main)) {
-      data_main_xts <- make_data_main(cfg = cfg)
+      data_main_xts <- make_data_main(cfg = cfg) %>%
+        magrittr::extract2("data_main")
     } else {
       data_main_xts <- readRDS(
         file = here::here(

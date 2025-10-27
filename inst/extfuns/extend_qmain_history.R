@@ -33,7 +33,7 @@ extend_qmain_history <- function(data_main_xts, dat_raw_dir) {
       ~ readr::read_tsv(here::here(
         dat_raw_dir,
         "11Q4",
-        stringr::str_glue(.x, ".TSV")
+        stringr::str_c(.x, ".TSV")
       ))
     ) %>%
     purrr::reduce(~ dplyr::full_join(.x, .y, by = c("DATE"))) %>%

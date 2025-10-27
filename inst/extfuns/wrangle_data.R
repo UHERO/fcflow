@@ -216,36 +216,36 @@ wrangle_data <- function(data_main_xts) {
   data_main_xts$TRMS_KAU <- data_main_xts$TRMSADJ_KAU
   data_main_xts$TRMS_MAU <- data_main_xts$TRMSADJ_MAU
 
-  # DELETE START
+  # # DELETE START
 
-  data_main_xts$SEASON_2 <- data_main_xts$IQ2
-  data_main_xts$SEASON_3 <- data_main_xts$IQ3
-  data_main_xts$SEASON_4 <- data_main_xts$IQ4
+  # data_main_xts$SEASON_2 <- data_main_xts$IQ2
+  # data_main_xts$SEASON_3 <- data_main_xts$IQ3
+  # data_main_xts$SEASON_4 <- data_main_xts$IQ4
 
-  dat_raw_dir <- "data/raw"
-  dummies_aremos_xts <- readr::read_tsv(here::here(
-    dat_raw_dir,
-    stringr::str_glue("DUMMY1", ".TSV")
-  )) %>%
-    dplyr::left_join(
-      readr::read_tsv(here::here(
-        dat_raw_dir,
-        stringr::str_glue("DUMMY2", ".TSV")
-      )),
-      by = c("DATE")
-    ) %>%
-    dplyr::mutate(
-      time = lubridate::yq(.data$DATE),
-      .before = "DATE",
-      .keep = "unused"
-    ) %>%
-    dplyr::rename_with(~ stringr::str_replace_all(., c("@" = "_"))) %>%
-    fcutils::conv_xts()
+  # dat_raw_dir <- "data/raw"
+  # dummies_aremos_xts <- readr::read_tsv(here::here(
+  #   dat_raw_dir,
+  #   stringr::str_glue("DUMMY1", ".TSV")
+  # )) %>%
+  #   dplyr::left_join(
+  #     readr::read_tsv(here::here(
+  #       dat_raw_dir,
+  #       stringr::str_glue("DUMMY2", ".TSV")
+  #     )),
+  #     by = c("DATE")
+  #   ) %>%
+  #   dplyr::mutate(
+  #     time = lubridate::yq(.data$DATE),
+  #     .before = "DATE",
+  #     .keep = "unused"
+  #   ) %>%
+  #   dplyr::rename_with(~ stringr::str_replace_all(., c("@" = "_"))) %>%
+  #   fcutils::conv_xts()
 
-  # store the variables used in the model
-  data_main_xts <- data_main_xts %>%
-    tsbox::ts_c(dummies_aremos_xts) #%>%
-  # DELETE END
+  # # store the variables used in the model
+  # data_main_xts <- data_main_xts %>%
+  #   tsbox::ts_c(dummies_aremos_xts) #%>%
+  # # DELETE END
 
   data_main_xts
 }

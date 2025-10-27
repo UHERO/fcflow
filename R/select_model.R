@@ -512,7 +512,7 @@ select_model <- function(
     cat(stringr::str_glue(
       "
 
-    {model_equation(est_lm)[2:5]}"
+    {fcutils::model_equation(est_lm)[2:5]}"
     ))
     sink()
 

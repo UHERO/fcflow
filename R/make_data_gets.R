@@ -13,7 +13,7 @@
 #' @param existing_forecast Optional pseudo-forecast dataset (ts-boxable object)
 #'   When `NULL`, the function reads the csv from disk.
 #'
-#' @return Invisibly returns the extended xts.
+#' @return Invisible list with xts object containing the extended quarterly dataset.
 #' @export
 make_data_gets <- function(
   cfg = load_forecast_cfg(),

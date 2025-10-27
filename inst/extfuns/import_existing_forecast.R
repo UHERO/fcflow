@@ -27,12 +27,12 @@ import_existing_fcst <- function(
   # load quarterly existing forecasts
   data_existing_fcst_xts <- readr::read_tsv(here::here(
     dat_raw_dir,
-    stringr::str_glue("QSOL1", ".TSV")
+    stringr::str_c("QSOL1", ".TSV")
   )) %>%
     dplyr::left_join(
       readr::read_tsv(here::here(
         dat_raw_dir,
-        stringr::str_glue("QSOL2", ".TSV")
+        stringr::str_c("QSOL2", ".TSV")
       )),
       by = c("DATE")
     ) %>%
@@ -58,19 +58,19 @@ import_existing_fcst <- function(
   # load annual existing forecasts
   data_existing_fcst_A_xts <- readr::read_tsv(here::here(
     dat_raw_dir,
-    stringr::str_glue("ASOL1", ".TSV")
+    stringr::str_c("ASOL1", ".TSV")
   )) %>%
     dplyr::left_join(
       readr::read_tsv(here::here(
         dat_raw_dir,
-        stringr::str_glue("ASOL2", ".TSV")
+        stringr::str_c("ASOL2", ".TSV")
       )),
       by = c("DATE")
     ) %>%
     dplyr::left_join(
       readr::read_tsv(here::here(
         dat_raw_dir,
-        stringr::str_glue("ASOL3", ".TSV")
+        stringr::str_c("ASOL3", ".TSV")
       )),
       by = c("DATE")
     ) %>%
@@ -219,7 +219,7 @@ import_existing_fcst <- function(
       data_model_ext_xts,
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("data_model_ext_xts.RDS")
+        stringr::str_c("data_model_ext_xts.RDS")
       )
     )
 
@@ -229,7 +229,7 @@ import_existing_fcst <- function(
       readr::write_csv(
         file = here::here(
           dat_prcsd_dir,
-          stringr::str_glue("data_model_ext_xts.csv")
+          stringr::str_c("data_model_ext_xts.csv")
         )
       )
 
@@ -238,7 +238,7 @@ import_existing_fcst <- function(
       data_existing_fcst_full_xts,
       file = here::here(
         dat_prcsd_dir,
-        stringr::str_glue("data_existing_fcst_full.RDS")
+        stringr::str_c("data_existing_fcst_full.RDS")
       )
     )
 
@@ -248,7 +248,7 @@ import_existing_fcst <- function(
       readr::write_csv(
         file = here::here(
           dat_prcsd_dir,
-          stringr::str_glue("data_existing_fcst_full.csv")
+          stringr::str_c("data_existing_fcst_full.csv")
         )
       )
   }
